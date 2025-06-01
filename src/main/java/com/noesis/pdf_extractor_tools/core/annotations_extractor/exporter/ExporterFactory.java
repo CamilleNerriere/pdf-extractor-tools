@@ -23,6 +23,7 @@ public class ExporterFactory {
             if (format == null)
                 return null;
             IAnnotationExporter exporter = switch (format) {
+                case TXT -> new TxtAnnotationExporter(annotations, title);
                 case WORD -> new WordAnnotationExporter(annotations, title);
                 case PDF -> new PdfAnnotationExporter(annotations, title);
                 default -> throw new IllegalArgumentException("Unexpected value: " + format);

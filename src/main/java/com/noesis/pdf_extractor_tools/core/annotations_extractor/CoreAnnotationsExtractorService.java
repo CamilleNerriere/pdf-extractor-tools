@@ -2,6 +2,7 @@ package com.noesis.pdf_extractor_tools.core.annotations_extractor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -28,6 +29,10 @@ public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtracto
             throws IOException {
         LinkedHashMap<Integer, List<Annotation>> extractedAnnotations = getAnnotations(pdfInput);
 
+        if(extractedAnnotations != null){
+            return getExtractionResult(extractedAnnotations, formats, title);
+        }
+        return null;
     }
 
     private LinkedHashMap<Integer, List<Annotation>> getAnnotations(InputStream pdfInput) {
@@ -42,12 +47,18 @@ public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtracto
     }
 
     private List<ExportedFile> getExtractionResult(LinkedHashMap<Integer, List<Annotation>> annotations,
-            List<ExportFormats> formats, String title) {
+            List<ExportFormats> formats, String title) throws IOException {
 
-         String exportTitle = title == null ? "Annotations" : title;
-         ExporterFactory exporterFactory = new ExporterFactory();
-         
-         List<IAnnotationExporter> exporters = exporterFactory.getExporter(annotations, formats, exportTitle);
-         
+        String exportTitle = title == null ? "Annotations" : title;
+        ExporterFactory exporterFactory = new ExporterFactory();
+
+        List<IAnnotationExporter> exporters = exporterFactory.getExporter(annotations, formats, exportTitle);
+        
+        List<ExportedFile> exportedFiles = new ArrayList<>();
+        for (IAnnotationExporter exporter : exporters) {
+            exportedFiles.add(exporter.export());
+        }
+
+        return exportedFiles;
     }
 }
