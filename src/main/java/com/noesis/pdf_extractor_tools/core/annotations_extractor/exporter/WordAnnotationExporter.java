@@ -50,6 +50,7 @@ public class WordAnnotationExporter implements IAnnotationExporter {
     public ExportedFile export() throws IOException {
         String fileName = generatePathName(title);
         Path tempFile = null;
+        
         try {
             WordprocessingMLPackage wordPackage = WordprocessingMLPackage.createPackage();
             StyleDefinitionsPart stylesPart = wordPackage.getMainDocumentPart().getStyleDefinitionsPart();

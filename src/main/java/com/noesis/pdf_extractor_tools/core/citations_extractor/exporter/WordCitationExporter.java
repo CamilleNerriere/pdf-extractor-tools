@@ -35,30 +35,33 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.Tr
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.context.ExporterContext;
 
 public class WordCitationExporter implements ICitationExporter {
-
-    private final ExporterContext context;
+    
     private static final Logger logger = LoggerFactory.getLogger(WordCitationExporter.class);
-
+    
+    private final String title;
+    private final LinkedHashMap<Integer, List<TradCitationWithNote>> tradCitations;
+    private final LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations;
+    private final LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations;
+    
     private WordprocessingMLPackage wordPackage;
     private MainDocumentPart mainDocumentPart;
     private final ObjectFactory factory;
 
     public WordCitationExporter(ExporterContext context) {
-        this.context = context;
+        this.title = context.getTitle();
+        this.tradCitations = context.getTradCitations();
+        this.blocCitations = context.getBlocCitations();
+        this.harvardCitations = context.getHarvardCitations();
         this.factory = Context.getWmlObjectFactory();
     }
 
     @Override
     public ExportedFile export() throws IOException {
+        String fileName = generatePathName(title);
+        Path tempFile = null;
+
         try {
             initializeDocument();
-
-            // context
-            LinkedHashMap<Integer, List<TradCitationWithNote>> tradCitations = context.getTradCitations();
-            LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations = context.getBlocCitations();
-            LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations = context.getHarvardCitations();
-            String title = context.getTitle();
-            String fileName = generatePathName(title);
 
             // main title
             addTitle(title);
@@ -87,8 +90,8 @@ public class WordCitationExporter implements ICitationExporter {
                     addSectionTitle("Classical Type Citation");
 
                     for (TradCitationWithNote citation : classical) {
-                        String cit = citation.getBaseAnnotatedCitation().getBaseCitation().getText();
-                        String noteNumber = citation.getBaseAnnotatedCitation().getNoteNumber();
+                        String cit = citation.getContent();
+                        String noteNumber = citation.getNoteNumber();
                         String footnote = citation.getFootnote();
 
                         addCitationEntry("Note " + noteNumber + " : " + cit, "Footnote : " + footnote);
@@ -102,7 +105,7 @@ public class WordCitationExporter implements ICitationExporter {
                     addSectionTitle("Harvard Type Citation");
 
                     for (AnnotatedHarvardCitation citation : harvard) {
-                        String cit = citation.getBaseCitation().getText();
+                        String cit = citation.getContent();
                         String note = citation.getNoteContent();
 
                         addCitationEntry(cit, "Note : " + note);
@@ -116,8 +119,8 @@ public class WordCitationExporter implements ICitationExporter {
                     addSectionTitle("Bloc Type Citation");
 
                     for (BlocCitationWithNote citation : bloc) {
-                        String cit = citation.getBaseAnnotatedCitation().getBaseCitation().getText();
-                        String noteNumber = citation.getBaseAnnotatedCitation().getNoteNumber();
+                        String cit = citation.getContent();
+                        String noteNumber = citation.getNoteNumber();
                         String footnote = citation.getFootnote();
 
                         addCitationEntry("Note " + noteNumber + " : " + cit, "Footnote : " + footnote);
@@ -127,7 +130,7 @@ public class WordCitationExporter implements ICitationExporter {
 
             }
 
-            Path tempFile = Files.createTempFile(title, ".pdf");
+            tempFile = Files.createTempFile(title, ".pdf");
             wordPackage.save(tempFile.toFile());
 
             logger.info("Docx export completed");
@@ -137,7 +140,15 @@ public class WordCitationExporter implements ICitationExporter {
         } catch (IOException | Docx4JException e) {
 
             logger.warn("Error during docx export", e);
-            throw new RuntimeException("Error during docx export", e);
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                    logger.info("Temporary file deleted after failure: {}", tempFile);
+                } catch (IOException ex) {
+                    logger.warn("Failed to delete temporary file: {}", tempFile, ex);
+                }
+            }
+            return null;
         }
     }
 

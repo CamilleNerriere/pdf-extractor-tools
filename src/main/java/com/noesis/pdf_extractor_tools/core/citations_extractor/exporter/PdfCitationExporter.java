@@ -23,8 +23,6 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.model.context.Exp
 
 public class PdfCitationExporter implements ICitationExporter {
 
-    private final ExporterContext context;
-
     private static final float MARGIN = 50;
     private static final float START_Y = 750;
     private static final float LINE_HEIGHT = 14.5f;
@@ -32,12 +30,22 @@ public class PdfCitationExporter implements ICitationExporter {
 
     private static final Logger logger = LoggerFactory.getLogger(PdfCitationExporter.class);
 
+    private final String title;
+    private final LinkedHashMap<Integer, List<TradCitationWithNote>> tradCitations;
+    private final LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations;
+    private final LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations;
+
     public PdfCitationExporter(ExporterContext context) {
-        this.context = context;
+        this.title = context.getTitle();
+        this.tradCitations = context.getTradCitations();
+        this.blocCitations = context.getBlocCitations();
+        this.harvardCitations = context.getHarvardCitations();
     }
 
     @Override
     public ExportedFile export() {
+        Path tempFile = null;
+
         try (PDDocument document = new PDDocument()) {
 
             PDType0Font regularFont = PDType0Font.load(document,
@@ -45,10 +53,6 @@ public class PdfCitationExporter implements ICitationExporter {
             PDType0Font boldFont = PDType0Font.load(document,
                     getClass().getResourceAsStream("/fonts/LiberationSerif-Bold.ttf"));
 
-            LinkedHashMap<Integer, List<TradCitationWithNote>> tradCitations = context.getTradCitations();
-            LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations = context.getBlocCitations();
-            LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations = context.getHarvardCitations();
-            String title = context.getTitle();
             String fileName = generatePathName(title);
             Set<Integer> allPages = new TreeSet<>();
             allPages.addAll(tradCitations.keySet());
@@ -88,8 +92,8 @@ public class PdfCitationExporter implements ICitationExporter {
                     yPosRef[0] -= LINE_HEIGHT;
 
                     for (TradCitationWithNote citation : classical) {
-                        String cit = citation.getBaseAnnotatedCitation().getBaseCitation().getText();
-                        String noteNumber = citation.getBaseAnnotatedCitation().getNoteNumber();
+                        String cit = citation.getContent();
+                        String noteNumber = citation.getNoteNumber();
                         String footnote = citation.getFootnote();
 
                         cs = writeLines(document, cs, boldFont, 12, "Note " + noteNumber + " :", yPosRef);
@@ -109,8 +113,8 @@ public class PdfCitationExporter implements ICitationExporter {
                     yPosRef[0] -= LINE_HEIGHT;
 
                     for (BlocCitationWithNote citation : bloc) {
-                        String cit = citation.getBaseAnnotatedCitation().getBaseCitation().getText();
-                        String noteNumber = citation.getBaseAnnotatedCitation().getNoteNumber();
+                        String cit = citation.getContent();
+                        String noteNumber = citation.getNoteNumber();
                         String footnote = citation.getFootnote();
 
                         cs = writeLines(document, cs, boldFont, 12, "Note " + noteNumber + " :", yPosRef);
@@ -130,7 +134,7 @@ public class PdfCitationExporter implements ICitationExporter {
                     yPosRef[0] -= LINE_HEIGHT;
 
                     for (AnnotatedHarvardCitation citation : harvard) {
-                        String cit = citation.getBaseCitation().getText();
+                        String cit = citation.getContent();
                         String note = citation.getNoteContent();
 
                         cs = writeLines(document, cs, regularFont, 12, cit, yPosRef);
@@ -147,7 +151,7 @@ public class PdfCitationExporter implements ICitationExporter {
             cs.endText();
             cs.close();
 
-            Path tempFile = Files.createTempFile(title, ".pdf");
+            tempFile = Files.createTempFile(title, ".pdf");
             document.save(tempFile.toFile());
             logger.info("Pdf export completed.");
 
@@ -155,8 +159,16 @@ public class PdfCitationExporter implements ICitationExporter {
 
         } catch (IOException e) {
 
-            logger.warn("Error during pdf export", e);
-            throw new RuntimeException("Error during pdf export", e);
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                    logger.info("Temporary file deleted after failure: {}", tempFile);
+                } catch (IOException ex) {
+                    logger.warn("Failed to delete temporary file: {}", tempFile, ex);
+                }
+            }
+
+            return null;
         }
     }
 
