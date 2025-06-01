@@ -1,9 +1,6 @@
 package com.noesis.pdf_extractor_tools.core.citations_extractor.exporter;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -21,119 +18,206 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.model.context.Exp
 
 public class TxtCitationExporter implements ICitationExporter {
 
-    private final ExporterContext context;
-
     private static final Logger logger = LoggerFactory.getLogger(TxtCitationExporter.class);
+    private final String title;
+
+    private final LinkedHashMap<Integer, List<TradCitationWithNote>> tradCitations;
+    private final LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations;
+    private final LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations;
+
+    private StringBuilder content;
+
+    private static final String SEPARATOR_LINE = "=" + "=".repeat(80) + "=";
+    private static final String SUB_SEPARATOR_LINE = "-" + "-".repeat(40) + "-";
+    private static final int LINE_WIDTH = 80;
 
     public TxtCitationExporter(ExporterContext context) {
-        this.context = context;
-
+        this.title = context.getTitle();
+        this.tradCitations = context.getTradCitations();
+        this.blocCitations = context.getBlocCitations();
+        this.harvardCitations = context.getHarvardCitations();
     }
 
     @Override
     public ExportedFile export() throws IOException {
-        LinkedHashMap<Integer, List<TradCitationWithNote>> tradCitations = context.getTradCitations();
-        LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations = context.getBlocCitations();
-        LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations = context.getHarvardCitations();
-        String title = context.getTitle();
 
-        StringBuilder txt = new StringBuilder();
-        txt.append("-----------------").append(title).append("---------------- \n");
-        txt.append(System.lineSeparator());
+        Path tempFile = null;
+        String fileName = generatePathName(title);
 
         Set<Integer> allPages = new TreeSet<>();
         allPages.addAll(tradCitations.keySet());
         allPages.addAll(harvardCitations.keySet());
+        allPages.addAll(blocCitations.keySet());
 
-        for (int page : allPages) {
+        try {
+            addTitle(title);
+            addEmptyLine();
 
-            boolean hasClassical = tradCitations.get(page) != null && !tradCitations.get(page).isEmpty();
-            boolean hasBloc = blocCitations.get(page) != null && !blocCitations.get(page).isEmpty();
-            boolean hasHarvard = harvardCitations.get(page) != null && !harvardCitations.get(page).isEmpty();
+            for (Integer pageNumber : allPages) {
 
-            if (!hasClassical && !hasHarvard && !hasBloc) {
-                continue;
+                List<TradCitationWithNote> classical = tradCitations.get(pageNumber);
+                List<AnnotatedHarvardCitation> harvard = harvardCitations.get(pageNumber);
+                List<BlocCitationWithNote> bloc = blocCitations.get(pageNumber);
+
+                boolean isClassicalEmpty = classical == null || classical.isEmpty();
+                boolean isHarvardEmpty = harvard == null || harvard.isEmpty();
+                boolean isBlocEmpty = bloc == null || bloc.isEmpty();
+
+                if (isClassicalEmpty && isHarvardEmpty && isBlocEmpty) {
+                    continue;
+                }
+
+                addEmptyLine();
+                addPageSubtitle("Page : " + pageNumber);
+                addEmptyLine();
+
+                if (!isClassicalEmpty) {
+                    addEmptyLine();
+                    addPageSubtitle("Classical Citations");
+                    addEmptyLine();
+
+                    for (TradCitationWithNote citation : classical) {
+                        addTradCitation(citation);
+                    }
+                }
+
+                if (!isHarvardEmpty) {
+                    addEmptyLine();
+                    addPageSubtitle("Havard Citations");
+                    addEmptyLine();
+
+                    for (AnnotatedHarvardCitation citation : harvard) {
+                        addHarvardCitation(citation);
+                    }
+                }
+
+                if (!isBlocEmpty) {
+                    addEmptyLine();
+                    addPageSubtitle("Bloc Citations");
+                    addEmptyLine();
+
+                    for (BlocCitationWithNote citation : bloc) {
+                        addBlocCitation(citation);
+                    }
+                }
+
+                tempFile = Files.createTempFile(title, ".txt");
+                Files.write(tempFile, content.toString().getBytes("UTF-8"));
+                logger.info("TXT export completed");
+
+                return new ExportedFile(fileName, tempFile);
+
             }
+        } catch (IOException e) {
 
-            txt.append(System.lineSeparator());
-            txt.append("---------Page ").append(page).append("---------");
-            txt.append(System.lineSeparator());
+            logger.error("Error during TXT export", e);
 
-            // Classical
-            List<TradCitationWithNote> classical = tradCitations.get(page);
-            if (classical != null && !classical.isEmpty()) {
-                txt.append(System.lineSeparator());
-                txt.append("--------------Classical Type Citation------------");
-                txt.append(System.lineSeparator());
-
-                for (TradCitationWithNote citation : classical) {
-                    String cit = citation.getBaseAnnotatedCitation().getBaseCitation().getText();
-                    String noteNumber = citation.getBaseAnnotatedCitation().getNoteNumber();
-                    String footnote = citation.getFootnote();
-
-                    txt.append(System.lineSeparator());
-                    txt.append("Note ").append(noteNumber).append(" : ").append(cit).append("\n");
-                    txt.append("Footnote : ").append(footnote);
-                    txt.append(System.lineSeparator());
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                    logger.info("Temporary file deleted after failure: {}", tempFile);
+                } catch (IOException ex) {
+                    logger.warn("Failed to delete temporary file: {}", tempFile, ex);
                 }
             }
 
-            // Harvard
-            List<AnnotatedHarvardCitation> harvard = harvardCitations.get(page);
-            if (harvard != null && !harvard.isEmpty()) {
-                txt.append(System.lineSeparator());
-                txt.append("--------------Harvard Type Citation------------");
-                txt.append(System.lineSeparator());
-
-                for (AnnotatedHarvardCitation citation : harvard) {
-                    String cit = citation.getBaseCitation().getText();
-                    String note = citation.getNoteContent();
-
-                    txt.append(System.lineSeparator());
-                    txt.append(cit).append("\n");
-                    txt.append("Note : ").append(note);
-                    txt.append(System.lineSeparator());
-                }
-            }
-
-            // Bloc
-            List<BlocCitationWithNote> bloc = blocCitations.get(page);
-            if (bloc != null && !bloc.isEmpty()) {
-                txt.append(System.lineSeparator());
-                txt.append("--------------Bloc Type Citation------------");
-                txt.append(System.lineSeparator());
-
-                for (BlocCitationWithNote citation : bloc) {
-                    String cit = citation.getBaseAnnotatedCitation().getBaseCitation().getText();
-                    String noteNumber = citation.getBaseAnnotatedCitation().getNoteNumber();
-                    String footnote = citation.getFootnote();
-
-                    txt.append(System.lineSeparator());
-                    txt.append("Note ").append(noteNumber).append(" : ").append(cit).append("\n");
-                    txt.append("Footnote : ").append(footnote);
-                    txt.append(System.lineSeparator());
-                }
-            }
-
+            return null;
         }
 
-        return new ExportedFile(title, generateTempFile(txt, title));
+        return null;
+    }
+
+    private void addTitle(String title) {
+        String formattedTitle = title.replace("\n", " ");
+        content.append(SEPARATOR_LINE).append("\n");
+        content.append(centerText(formattedTitle.toUpperCase())).append("\n");
+        content.append(SEPARATOR_LINE).append("\n");
+    }
+
+    private void addPageSubtitle(String subtitle) {
+        content.append(SUB_SEPARATOR_LINE).append("\n");
+        content.append(subtitle.toUpperCase()).append("\n");
+        content.append(SUB_SEPARATOR_LINE).append("\n");
+    }
+
+    private void addTradCitation(TradCitationWithNote citation) {
+
+        String citationContent = sanitize(citation.getContent());
+        String footnoteContent = sanitize(citation.getFootnote());
+        String noteNumber = citation.getNoteNumber();
+
+        boolean isCitationEmpty = citationContent == null || citationContent.isEmpty();
+        boolean isFootnoteEmpty = footnoteContent == null || footnoteContent.isEmpty();
+
+        if (!isCitationEmpty) {
+            addEmptyLine();
+            content.append("Citation : ").append(noteNumber).append(" : ").append(citationContent).append("\n");
+            if (!isFootnoteEmpty) {
+                content.append("Footnote : ").append(footnoteContent);
+            }
+            addEmptyLine();
+        }
+    }
+
+    private void addBlocCitation(BlocCitationWithNote citation) {
+        String citationContent = sanitize(citation.getContent());
+        String footnoteContent = sanitize(citation.getFootnote());
+        String noteNumber = citation.getNoteNumber();
+
+        boolean isCitationEmpty = citationContent == null || citationContent.isEmpty();
+        boolean isFootnoteEmpty = footnoteContent == null || footnoteContent.isEmpty();
+
+        if (!isCitationEmpty) {
+            addEmptyLine();
+            content.append("Citation : ").append(noteNumber).append(" : ").append(citationContent).append("\n");
+            if (!isFootnoteEmpty) {
+                content.append("Footnote : ").append(footnoteContent);
+            }
+            addEmptyLine();
+        }
+    }
+
+    private void addHarvardCitation(AnnotatedHarvardCitation citation) {
+        String citationContent = sanitize(citation.getContent());
+        String noteContent = sanitize(citation.getNoteContent());
+
+        boolean isCitationEmpty = citationContent == null || citationContent.isEmpty();
+        boolean isNoteEmpty = noteContent == null || noteContent.isEmpty();
+
+        if (!isCitationEmpty) {
+            addEmptyLine();
+            content.append("Citation : ").append(citationContent).append("\n");
+
+            if (!isNoteEmpty) {
+                content.append("Note : ").append(noteContent).append("\n");
+            }
+            addEmptyLine();
+        }
+
+    }
+
+    private String centerText(String text) {
+        int padding = (LINE_WIDTH - text.length()) / 2;
+        if (padding > 0) {
+            return " ".repeat(padding) + text;
+        }
+        return text;
+    }
+
+    private void addEmptyLine() {
+        content.append("\n");
+    }
+
+    private String sanitize(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("\t", "    ")
+                .replace("\uFEFF", "")
+                .replace("\u200B", "");
     }
 
     private String generatePathName(String title) {
         return title.replaceAll("\\s", "_") + ".txt";
-    }
-
-    private Path generateTempFile(StringBuilder txt, String fileName) throws IOException {
-        Path tempFile = Files.createTempFile(fileName, ".pdf");
-
-        try (BufferedWriter writer = Files.newBufferedWriter(tempFile, StandardCharsets.UTF_8)) {
-            writer.write(txt.toString());
-        } catch (IOException e){
-            logger.warn("Error during txt export", e);
-        }
-
-        logger.info("Txt export completed");
-        return tempFile;
     }
 }

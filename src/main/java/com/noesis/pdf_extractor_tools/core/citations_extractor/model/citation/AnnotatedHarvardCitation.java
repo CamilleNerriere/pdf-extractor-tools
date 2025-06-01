@@ -13,6 +13,10 @@ public class AnnotatedHarvardCitation {
         return baseCitation;
     }
 
+    public String getContent(){
+        return baseCitation.getText();
+    }
+
     public String getNoteContent(){
         return noteContent;
     }

@@ -1,7 +1,8 @@
 package com.noesis.pdf_extractor_tools.core.annotations_extractor.exporter;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
+import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ExportedFile;
 
 public class PdfAnnotationExporter implements IAnnotationExporter {
     private static final Logger logger = LoggerFactory.getLogger(PdfAnnotationExporter.class);
@@ -34,9 +36,9 @@ public class PdfAnnotationExporter implements IAnnotationExporter {
     private PDFont CONTENT_FONT;
     private static final PDColor MAIN_COLOR = new PDColor(new float[] { 0, 0, 0 }, PDDeviceRGB.INSTANCE);
     private static final PDColor TITLE_COLOR = new PDColor(new float[] {
-    19f / 255, 84f / 255, 135f / 255 }, PDDeviceRGB.INSTANCE);
+            19f / 255, 84f / 255, 135f / 255 }, PDDeviceRGB.INSTANCE);
     private static final PDColor SUBTITLE_COLOR = new PDColor(new float[] {
-    19f / 255, 102f / 255, 135f / 255 }, PDDeviceRGB.INSTANCE);
+            19f / 255, 102f / 255, 135f / 255 }, PDDeviceRGB.INSTANCE);
 
     private static final float TITLE_SIZE = 18f;
     private static final float SUBTITLE_SIZE = 14f;
@@ -52,7 +54,8 @@ public class PdfAnnotationExporter implements IAnnotationExporter {
     }
 
     @Override
-    public void export() {
+    public ExportedFile export() {
+        Path tempFile = null;
         try {
             document = new PDDocument();
             TITLE_FONT = PDType0Font.load(document, getClass().getResourceAsStream("/fonts/LiberationSerif-Bold.ttf"));
@@ -86,24 +89,37 @@ public class PdfAnnotationExporter implements IAnnotationExporter {
                 contentStream.close();
             }
 
-            // save
-            File exportFile = new File(generatePathName(title));
-            document.save(exportFile);
-            document.close();
+            tempFile = Files.createTempFile(title, ".pdf");
+            document.save(tempFile.toFile());
 
-            logger.info("PDF Export ended successfully : {}", exportFile.getAbsolutePath());
+            logger.info("Pdf export completed.");
+            return new ExportedFile(generatePathName(title), tempFile);
+
         } catch (IOException e) {
             logger.error("Error during PDF export", e);
-            try {
-                if (contentStream != null) {
+            if (contentStream != null)
+                try {
                     contentStream.close();
+                } catch (IOException ex) {
+                    logger.error("Error closing contentStream", ex);
                 }
-                if (document != null) {
+            if (document != null)
+                try {
                     document.close();
+                } catch (IOException ex) {
+                    logger.error("Error closing document", ex);
                 }
-            } catch (IOException ex) {
-                logger.error("Error closing PDF resources", ex);
+
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                    logger.info("Temporary file deleted after failure: {}", tempFile);
+                } catch (IOException ex) {
+                    logger.warn("Failed to delete temporary file: {}", tempFile, ex);
+                }
             }
+
+            return null;
         }
     }
 
@@ -234,8 +250,8 @@ public class PdfAnnotationExporter implements IAnnotationExporter {
         return text.replace("\t", "    ").replace("\uFEFF", "").replace("\u200B", "");
     }
 
-    private String generatePathName(String title){
-        String titleWithoutWhiteSpace =  title.replaceAll("\\s", "_");
+    private String generatePathName(String title) {
+        String titleWithoutWhiteSpace = title.replaceAll("\\s", "_");
         return titleWithoutWhiteSpace + ".pdf";
     }
 

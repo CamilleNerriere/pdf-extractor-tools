@@ -1,7 +1,9 @@
 package com.noesis.pdf_extractor_tools.core.annotations_extractor.exporter;
 
-import java.io.File;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -27,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
+import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ExportedFile;
 
 public class WordAnnotationExporter implements IAnnotationExporter {
 
@@ -44,8 +47,9 @@ public class WordAnnotationExporter implements IAnnotationExporter {
     }
 
     @Override
-    public void export() {
-
+    public ExportedFile export() throws IOException {
+        String fileName = generatePathName(title);
+        Path tempFile = null;
         try {
             WordprocessingMLPackage wordPackage = WordprocessingMLPackage.createPackage();
             StyleDefinitionsPart stylesPart = wordPackage.getMainDocumentPart().getStyleDefinitionsPart();
@@ -76,13 +80,24 @@ public class WordAnnotationExporter implements IAnnotationExporter {
 
                 addEmptyParagraph();
             }
+            tempFile = Files.createTempFile(title, ".pdf");
+            wordPackage.save(tempFile.toFile());
 
-            File exportFile = new File(generatePathName(title));
-            wordPackage.save(exportFile);
-            logger.info("Word Export ended successfully : {}", exportFile.getAbsolutePath());
+            logger.info("Docx export completed");
+
+            return new ExportedFile(fileName, tempFile);
 
         } catch (Docx4JException e) {
             logger.error("Error during word export", e);
+            if (tempFile != null) {
+                try {
+                    Files.deleteIfExists(tempFile);
+                    logger.info("Temporary file deleted after failure: {}", tempFile);
+                } catch (IOException ex) {
+                    logger.warn("Failed to delete temporary file: {}", tempFile, ex);
+                }
+            }
+            return null;
         }
     }
 

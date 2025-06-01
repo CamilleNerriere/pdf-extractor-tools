@@ -13,6 +13,14 @@ public class BlocCitationWithNote {
         return baseAnnotatedCitation;
     }
 
+    public String getContent(){
+        return baseAnnotatedCitation.getBaseCitation().getText();
+    }
+
+    public String getNoteNumber(){
+        return baseAnnotatedCitation.getNoteNumber();
+    }
+
     public String getFootnote(){
         return footnote;
     }
