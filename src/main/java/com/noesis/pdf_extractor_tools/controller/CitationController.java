@@ -26,12 +26,6 @@ public class CitationController {
     @Autowired
     private CitationsService citationsService;
 
-    @GetMapping("/citations/test")
-    @ResponseBody
-    public String test() {
-        return "OK";
-    }
-
     /**
      * Extract citations from PDF and return as ZIP file
      */

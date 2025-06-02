@@ -25,12 +25,6 @@ public class AnnotationsController {
     @Autowired
     private AnnotationsService annotationsService;
 
-    @GetMapping("/annotations/test")
-    @ResponseBody
-    public String test() {
-        return "OK";
-    }
-
     /**
      * Extract annotations from PDF and return as ZIP file
      */
