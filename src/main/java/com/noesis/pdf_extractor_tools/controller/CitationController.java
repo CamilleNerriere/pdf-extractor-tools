@@ -14,32 +14,33 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.noesis.pdf_extractor_tools.model.ExtractionDataRequest;
 import com.noesis.pdf_extractor_tools.service.AnnotationsService;
+import com.noesis.pdf_extractor_tools.service.CitationsService;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
-public class AnnotationsController {
+public class CitationController {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationsController.class);
 
     @Autowired
-    private AnnotationsService annotationsService;
+    private CitationsService citationsService;
 
-    @GetMapping("/annotations/test")
+    @GetMapping("/citations/test")
     @ResponseBody
     public String test() {
         return "OK";
     }
 
     /**
-     * Extract annotations from PDF and return as ZIP file
+     * Extract citations from PDF and return as ZIP file
      */
-    @PostMapping(path = "/extract/annotations", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PostMapping(path = "/extract/citations", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public void extractAnnotations(@ModelAttribute ExtractionDataRequest annotationDataRequest,
             HttpServletResponse response) throws IOException {
 
         try {
-            annotationsService.extractAnnotations(annotationDataRequest, response);
+            citationsService.extractCitations(annotationDataRequest, response);
         } catch (IOException e) {
             try {
                 if (!response.isCommitted()) {

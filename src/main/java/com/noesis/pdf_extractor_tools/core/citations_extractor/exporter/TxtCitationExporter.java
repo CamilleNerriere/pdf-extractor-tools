@@ -103,13 +103,14 @@ public class TxtCitationExporter implements ICitationExporter {
                     }
                 }
 
-                tempFile = Files.createTempFile(title, ".txt");
-                Files.write(tempFile, content.toString().getBytes("UTF-8"));
-                logger.info("TXT export completed");
-
-                return new ExportedFile(fileName, tempFile);
-
             }
+
+            tempFile = Files.createTempFile(title, ".txt");
+            Files.write(tempFile, content.toString().getBytes("UTF-8"));
+            logger.info("TXT export completed");
+
+            return new ExportedFile(fileName, tempFile);
+
         } catch (IOException e) {
 
             logger.error("Error during TXT export", e);
@@ -126,7 +127,6 @@ public class TxtCitationExporter implements ICitationExporter {
             return null;
         }
 
-        return null;
     }
 
     private void addTitle(String title) {

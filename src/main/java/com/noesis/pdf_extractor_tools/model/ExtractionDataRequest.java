@@ -5,7 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 import lombok.Data;
 
 @Data
-public class AnnotationDataRequest {
+public class ExtractionDataRequest {
     private String title;
     private String[] formats;
     private MultipartFile pdf;
