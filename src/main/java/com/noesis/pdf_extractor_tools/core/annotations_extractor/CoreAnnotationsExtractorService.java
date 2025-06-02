@@ -29,7 +29,7 @@ public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtracto
             throws IOException {
         LinkedHashMap<Integer, List<Annotation>> extractedAnnotations = getAnnotations(pdfInput);
 
-        if(extractedAnnotations != null){
+        if(extractedAnnotations != null && !extractedAnnotations.isEmpty()){
             return getExtractionResult(extractedAnnotations, formats, title);
         }
         return null;
