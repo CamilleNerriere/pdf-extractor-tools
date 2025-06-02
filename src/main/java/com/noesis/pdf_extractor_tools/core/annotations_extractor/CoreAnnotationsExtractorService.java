@@ -17,8 +17,8 @@ import com.noesis.pdf_extractor_tools.core.annotations_extractor.exporter.Export
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.exporter.IAnnotationExporter;
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.extractor.Extractor;
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
-import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ExportedFile;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
+import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
 
 public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtractorService {
 

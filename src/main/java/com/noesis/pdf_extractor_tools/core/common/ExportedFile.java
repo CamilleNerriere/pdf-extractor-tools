@@ -1,4 +1,4 @@
-package com.noesis.pdf_extractor_tools.core.citations_extractor.exporter;
+package com.noesis.pdf_extractor_tools.core.common;
 
 import java.io.IOException;
 import java.io.InputStream;

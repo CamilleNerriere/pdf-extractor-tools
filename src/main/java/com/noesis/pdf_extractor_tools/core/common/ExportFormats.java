@@ -1,5 +1,7 @@
 package com.noesis.pdf_extractor_tools.core.common;
 
+import java.util.Optional;
+
 public enum ExportFormats {
     PDF, TXT, WORD;
 
@@ -9,6 +11,14 @@ public enum ExportFormats {
             return true;
         } catch (IllegalArgumentException e) {
             return false;
+        }
+    }
+
+    public static Optional<ExportFormats> fromString(String format){
+        try {
+            return Optional.of(ExportFormats.valueOf(format.toUpperCase()));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
         }
     }
 }

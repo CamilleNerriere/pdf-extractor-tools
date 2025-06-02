@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.annotator.BlocCitationAnnotator;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.annotator.ICitationAnnotator;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.annotator.TradCitationAnnotator;
-import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ExportedFile;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ExporterFactory;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ICitationExporter;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.extractor.Extractor;
@@ -47,6 +46,7 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.pdf.utils.FontSta
 import com.noesis.pdf_extractor_tools.core.citations_extractor.pdf.utils.ICoordStats;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.pdf.utils.IFontStats;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
+import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
 
 
 @Component

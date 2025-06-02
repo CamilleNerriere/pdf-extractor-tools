@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
-import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
 
 public class WordAnnotationExporter implements IAnnotationExporter {
 

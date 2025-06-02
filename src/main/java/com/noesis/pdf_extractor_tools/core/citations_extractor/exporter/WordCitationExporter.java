@@ -33,6 +33,7 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.An
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.BlocCitationWithNote;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.TradCitationWithNote;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.context.ExporterContext;
+import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
 
 public class WordCitationExporter implements ICitationExporter {
     

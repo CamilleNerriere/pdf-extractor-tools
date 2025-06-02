@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import com.noesis.pdf_extractor_tools.core.citations_extractor.exporter.ExportedFile;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
+import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
 
 
 public interface ICoreCitationsExtractorService {
