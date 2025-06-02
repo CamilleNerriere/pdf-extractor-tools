@@ -12,6 +12,7 @@ import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.exporter.ExporterFactory;
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.exporter.IAnnotationExporter;
@@ -20,6 +21,7 @@ import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotatio
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
 
+@Component
 public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtractorService {
 
     private static final Logger logger = LoggerFactory.getLogger(CoreAnnotationsExtractorService.class);

@@ -23,6 +23,7 @@ import org.docx4j.wml.PPrBase.Spacing;
 import org.docx4j.wml.R;
 import org.docx4j.wml.RFonts;
 import org.docx4j.wml.RPr;
+import org.docx4j.wml.Styles;
 import org.docx4j.wml.Style;
 import org.docx4j.wml.Text;
 import org.slf4j.Logger;
@@ -50,22 +51,21 @@ public class WordAnnotationExporter implements IAnnotationExporter {
     public ExportedFile export() throws IOException {
         String fileName = generatePathName(title);
         Path tempFile = null;
-        
+
         try {
             WordprocessingMLPackage wordPackage = WordprocessingMLPackage.createPackage();
-            StyleDefinitionsPart stylesPart = wordPackage.getMainDocumentPart().getStyleDefinitionsPart();
-            Style style = (Style) stylesPart.getStyleById("Normal");
-            RPr rpr = style.getRPr();
-            if (rpr == null) {
-                rpr = factory.createRPr();
-                style.setRPr(rpr);
+            StyleDefinitionsPart stylesPart = wordPackage.getMainDocumentPart().getStyleDefinitionsPart(true);
+
+            if (stylesPart.getJaxbElement() == null) {
+                Styles styles = factory.createStyles();
+                stylesPart.setJaxbElement(styles);
             }
-            RFonts runFont = new RFonts();
-            runFont.setAscii("Arial");
-            runFont.setHAnsi("Arial");
-            rpr.setRFonts(runFont);
+
+            createRequiredStyles(stylesPart);
+
             mainDocumentPart = wordPackage.getMainDocumentPart();
-            mainDocumentPart.addStyledParagraphOfText("Title", title);
+
+            addTitleParagraph(title);
 
             addEmptyParagraph();
 
@@ -100,6 +100,109 @@ public class WordAnnotationExporter implements IAnnotationExporter {
             }
             return null;
         }
+    }
+
+    private void createRequiredStyles(StyleDefinitionsPart stylesPart) throws Docx4JException {
+        // Créer le style Normal
+        Style normalStyle = (Style) stylesPart.getStyleById("Normal");
+        if (normalStyle == null) {
+            logger.info("Style 'Normal' not found. Creating a new one.");
+            normalStyle = createNormalStyle();
+            stylesPart.getContents().getStyle().add(normalStyle);
+        }
+        configureStyleFont(normalStyle);
+        
+        // Créer le style Title
+        Style titleStyle = (Style) stylesPart.getStyleById("Title");
+        if (titleStyle == null) {
+            logger.info("Style 'Title' not found. Creating a new one.");
+            titleStyle = createTitleStyle();
+            stylesPart.getContents().getStyle().add(titleStyle);
+        }
+    }
+
+    private Style createTitleStyle() {
+        Style style = factory.createStyle();
+        style.setStyleId("Title");
+        style.setName(factory.createStyleName());
+        style.getName().setVal("Title");
+        style.setType("paragraph");
+        
+        // Configuration du style titre
+        RPr rpr = factory.createRPr();
+        RFonts runFont = new RFonts();
+        runFont.setAscii("Arial");
+        runFont.setHAnsi("Arial");
+        rpr.setRFonts(runFont);
+        
+        // Titre en gras et plus grand
+        BooleanDefaultTrue bold = new BooleanDefaultTrue();
+        rpr.setB(bold);
+        
+        HpsMeasure fontSize = factory.createHpsMeasure();
+        fontSize.setVal(BigInteger.valueOf(32)); // 16pt
+        rpr.setSz(fontSize);
+        rpr.setSzCs(fontSize);
+        
+        style.setRPr(rpr);
+        return style;
+    }
+
+    private void addTitleParagraph(String titleText) {
+        P paragraph = factory.createP();
+        R run = factory.createR();
+        Text text = factory.createText();
+        text.setValue(titleText);
+        run.getContent().add(text);
+
+        // Appliquer le formatage du titre
+        RPr runProps = factory.createRPr();
+        BooleanDefaultTrue bold = new BooleanDefaultTrue();
+        runProps.setB(bold);
+
+        HpsMeasure fontSize = factory.createHpsMeasure();
+        fontSize.setVal(BigInteger.valueOf(32)); // 16pt
+        runProps.setSz(fontSize);
+        runProps.setSzCs(fontSize);
+
+        RFonts runFont = new RFonts();
+        runFont.setAscii("Arial");
+        runFont.setHAnsi("Arial");
+        runProps.setRFonts(runFont);
+
+        run.setRPr(runProps);
+        paragraph.getContent().add(run);
+
+        // Espacement après le titre
+        PPr paragraphProps = factory.createPPr();
+        Spacing spacing = factory.createPPrBaseSpacing();
+        spacing.setAfter(BigInteger.valueOf(240));
+        paragraphProps.setSpacing(spacing);
+        paragraph.setPPr(paragraphProps);
+
+        mainDocumentPart.getContent().add(paragraph);
+    }
+
+    private Style createNormalStyle() {
+        Style style = factory.createStyle();
+        style.setStyleId("Normal");
+        style.setName(factory.createStyleName());
+        style.getName().setVal("Normal");
+        style.setType("paragraph");
+        style.setDefault(true);
+        return style;
+    }
+
+    private void configureStyleFont(Style style) {
+        RPr rpr = style.getRPr();
+        if (rpr == null) {
+            rpr = factory.createRPr();
+            style.setRPr(rpr);
+        }
+        RFonts runFont = new RFonts();
+        runFont.setAscii("Arial");
+        runFont.setHAnsi("Arial");
+        rpr.setRFonts(runFont);
     }
 
     private void addEmptyParagraph() {

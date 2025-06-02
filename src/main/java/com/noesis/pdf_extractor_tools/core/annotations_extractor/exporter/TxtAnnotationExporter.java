@@ -32,6 +32,7 @@ public class TxtAnnotationExporter implements IAnnotationExporter {
     public ExportedFile export() {
         Path tempFile = null;
         String fileName = generatePathName(title);
+        content = new StringBuilder();
 
         try {
             // main title

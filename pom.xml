@@ -72,14 +72,20 @@
 		    <!-- docx4j -->
 		<dependency>
 			<groupId>org.docx4j</groupId>
-			<artifactId>docx4j</artifactId>
-			<version>6.1.2</version>
+			<artifactId>docx4j-export-fo</artifactId>
+			<version>11.5.3</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.docx4j</groupId>
-			<artifactId>docx4j-export-fo</artifactId>
-			<version>11.5.3</version>
+			<artifactId>docx4j-JAXB-MOXy</artifactId>
+			<version>11.4.9</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.persistence</groupId>
+			<artifactId>org.eclipse.persistence.moxy</artifactId>
+			<version>4.0.2</version>
 		</dependency>
 
 		<!--PDF Box-->

@@ -44,6 +44,7 @@ public class TxtCitationExporter implements ICitationExporter {
 
         Path tempFile = null;
         String fileName = generatePathName(title);
+        content = new StringBuilder();
 
         Set<Integer> allPages = new TreeSet<>();
         allPages.addAll(tradCitations.keySet());
