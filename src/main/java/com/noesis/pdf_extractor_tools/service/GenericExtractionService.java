@@ -30,6 +30,11 @@ public class GenericExtractionService {
         String title = request.getTitle();
         List<ExportFormats> formats = normalizeFormats(request.getFormats());
 
+        if(title != null && title.length() > 50){
+            logger.warn("Title exceed max length");
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Title exceed max length");
+        }
+
         try (InputStream pdf = convertToInputStream(request.getPdf())) {
 
             if (pdf == null) {
