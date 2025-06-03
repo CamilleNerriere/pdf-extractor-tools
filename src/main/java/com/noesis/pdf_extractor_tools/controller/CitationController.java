@@ -12,23 +12,28 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.noesis.pdf_extractor_tools.config.RateLimitBuckets;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
 import com.noesis.pdf_extractor_tools.mapper.FormatNormalizer;
 import com.noesis.pdf_extractor_tools.model.ExtractionDataRequest;
 import com.noesis.pdf_extractor_tools.service.CitationsService;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.FormatsValidator;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.PdfTitleValidator;
-import com.noesis.pdf_extractor_tools.validation.extractor.pdfFile.AnnotationPdfValidator;
+import com.noesis.pdf_extractor_tools.validation.extractor.pdfFile.CitationPdfValidator;
+import com.noesis.pdf_extractor_tools.web.util.HttpResponseUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class CitationController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AnnotationsController.class);
+    private static final Logger logger = LoggerFactory.getLogger(CitationController.class);
 
     @Autowired
     private CitationsService citationsService;
+
+    @Autowired
+    RateLimitBuckets bucket;
 
     /**
      * Extract citations from PDF and return as ZIP file
@@ -41,7 +46,13 @@ public class CitationController {
 
         try {
 
-            AnnotationPdfValidator.validate(file);
+            if (!bucket.citationBucket.tryConsume(1)) {
+                logger.warn("Rate limit exceeded on /extract/citations");
+                HttpResponseUtils.sendRateLimitExceeded(response, 60);
+                return;
+            }
+
+            CitationPdfValidator.validate(file);
             PdfTitleValidator.validate(title);
             FormatsValidator.validate(formats);
 

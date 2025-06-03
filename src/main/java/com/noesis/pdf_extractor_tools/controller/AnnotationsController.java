@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.noesis.pdf_extractor_tools.config.RateLimitBuckets;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
 import com.noesis.pdf_extractor_tools.mapper.FormatNormalizer;
 import com.noesis.pdf_extractor_tools.model.ExtractionDataRequest;
@@ -19,6 +20,7 @@ import com.noesis.pdf_extractor_tools.service.AnnotationsService;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.FormatsValidator;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.PdfTitleValidator;
 import com.noesis.pdf_extractor_tools.validation.extractor.pdfFile.AnnotationPdfValidator;
+import com.noesis.pdf_extractor_tools.web.util.HttpResponseUtils;
 
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -29,6 +31,9 @@ public class AnnotationsController {
 
     @Autowired
     private AnnotationsService annotationsService;
+
+    @Autowired
+    private RateLimitBuckets bucket;
 
     /**
      * Extract annotations from PDF and return as ZIP file
@@ -41,12 +46,18 @@ public class AnnotationsController {
 
         try {
 
+            if (!bucket.annotationBucket.tryConsume(1)) {
+                logger.warn("Rate limit exceeded on /extract/annotation");
+                HttpResponseUtils.sendRateLimitExceeded(response, 60);
+                return;
+            }
+
             AnnotationPdfValidator.validate(file);
             PdfTitleValidator.validate(title);
             FormatsValidator.validate(formats);
 
             List<ExportFormats> normalizedFormats = FormatNormalizer.normalizeFormats(formats);
-        
+
             ExtractionDataRequest extractionDataRequest = new ExtractionDataRequest(title, normalizedFormats, file);
 
             annotationsService.extractAnnotations(extractionDataRequest, response);

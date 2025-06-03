@@ -101,6 +101,13 @@
 			<version>3.0.4</version>
 		</dependency>
 
+		<!--Bucket 4j-->
+		<dependency>
+			<groupId>com.bucket4j</groupId>
+			<artifactId>bucket4j-core</artifactId>
+			<version>8.1.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

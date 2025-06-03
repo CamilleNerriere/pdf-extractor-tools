@@ -23,7 +23,7 @@ public class FormatNormalizer {
             return normalizedFormats;
         }
 
-        throw new IllegalArgumentException("No valid format found");
+        throw new IllegalArgumentException("No valid format found.");
 
     }
 
