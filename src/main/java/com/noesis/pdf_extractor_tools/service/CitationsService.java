@@ -1,7 +1,5 @@
 package com.noesis.pdf_extractor_tools.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class CitationsService {
-    private static final Logger logger = LoggerFactory.getLogger(AnnotationsService.class);
-
+   
     @Autowired
     CoreCitationsExtractorService citationsExtractorService;
 

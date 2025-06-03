@@ -3,9 +3,7 @@ package com.noesis.pdf_extractor_tools.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -23,17 +21,12 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class GenericExtractionService {
-    private static final Logger logger = LoggerFactory.getLogger(AnnotationsService.class);
+    private static final Logger logger = LoggerFactory.getLogger(GenericExtractionService.class);
 
     public void extractAndSendFiles(ExtractionDataRequest request, HttpServletResponse response,
             ExtractorFunction extractor) throws Exception {
         String title = request.getTitle();
-        List<ExportFormats> formats = normalizeFormats(request.getFormats());
-
-        if(title != null && title.length() > 50){
-            logger.warn("Title exceed max length");
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Title exceed max length");
-        }
+        List<ExportFormats> formats = request.getFormats();
 
         try (InputStream pdf = convertToInputStream(request.getPdf())) {
 
@@ -114,29 +107,6 @@ public class GenericExtractionService {
                 logger.warn("Unable to remove tempFile {}", file.fileName(), e);
             }
         }
-    }
-
-    private List<ExportFormats> normalizeFormats(String[] formats) {
-
-        List<ExportFormats> normalizedFormats = new ArrayList<>();
-
-        if (formats == null || formats.length == 0) {
-            logger.warn("No format specification");
-            return normalizedFormats;
-        }
-
-        for (String format : formats) {
-            Optional<ExportFormats> op = ExportFormats.fromString(format);
-
-            if (op.isPresent()) {
-                normalizedFormats.add(op.get());
-            } else {
-                logger.warn("Unknown format : {}", format);
-            }
-
-        }
-
-        return normalizedFormats;
     }
 
     private InputStream convertToInputStream(MultipartFile file) {

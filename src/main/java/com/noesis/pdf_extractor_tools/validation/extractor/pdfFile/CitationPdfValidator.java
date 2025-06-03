@@ -1,4 +1,4 @@
-package com.noesis.pdf_extractor_tools.validation;
+package com.noesis.pdf_extractor_tools.validation.extractor.pdfFile;
 
 import org.springframework.web.multipart.MultipartFile;
 
