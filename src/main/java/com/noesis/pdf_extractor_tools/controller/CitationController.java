@@ -61,8 +61,12 @@ public class CitationController {
             ExtractionDataRequest extractionDataRequest = new ExtractionDataRequest(title, normalizedFormats, file);
 
             citationsService.extractCitations(extractionDataRequest, response);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Validation Error : {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
 
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             handleError(response);
         }
     }

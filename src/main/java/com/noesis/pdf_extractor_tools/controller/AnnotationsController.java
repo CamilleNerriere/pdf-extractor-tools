@@ -61,6 +61,11 @@ public class AnnotationsController {
             ExtractionDataRequest extractionDataRequest = new ExtractionDataRequest(title, normalizedFormats, file);
 
             annotationsService.extractAnnotations(extractionDataRequest, response);
+
+        } catch (IllegalArgumentException e) {
+            logger.warn("Validation Error : {}", e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+
         } catch (Exception e) {
             handleError(response);
         }
