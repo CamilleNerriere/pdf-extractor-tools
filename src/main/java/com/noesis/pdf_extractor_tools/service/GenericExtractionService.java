@@ -109,18 +109,18 @@ public class GenericExtractionService {
         }
     }
 
-    private InputStream convertToInputStream(MultipartFile file) {
+    private InputStream convertToInputStream(MultipartFile file) throws Exception {
 
         if (file == null || file.isEmpty()) {
             logger.error("Null or Empty file");
-            return null;
+            throw new IllegalArgumentException("Empty or missing file");
         }
 
         try {
             return file.getInputStream();
         } catch (IOException e) {
             logger.error("Error during file to InputStream Conversion");
-            return null;
+            throw new Exception("Error converting file to Input Stream");
         }
     }
 

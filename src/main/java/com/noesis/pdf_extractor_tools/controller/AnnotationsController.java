@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ import com.noesis.pdf_extractor_tools.web.util.HttpResponseUtils;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
+@RequestMapping("/extract")
 public class AnnotationsController {
 
     private static final Logger logger = LoggerFactory.getLogger(AnnotationsController.class);
@@ -38,7 +40,7 @@ public class AnnotationsController {
     /**
      * Extract annotations from PDF and return as ZIP file
      */
-    @PostMapping(path = "/extract/annotations", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PostMapping(path = "/annotations", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public void extractAnnotations(@RequestParam("file") MultipartFile file,
             @RequestParam("formats") List<String> formats,
             @RequestParam("title") String title,

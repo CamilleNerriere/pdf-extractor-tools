@@ -44,4 +44,4 @@ Thumbs.db
 # Build tools
 /logback*
 
-env.properties
+.env.properties
