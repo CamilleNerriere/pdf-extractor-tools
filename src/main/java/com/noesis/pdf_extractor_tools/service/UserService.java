@@ -1,12 +1,15 @@
 package com.noesis.pdf_extractor_tools.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.noesis.pdf_extractor_tools.dto.user.UserRegisterDto;
 import com.noesis.pdf_extractor_tools.dto.user.UserUpdateDto;
 import com.noesis.pdf_extractor_tools.exception.ConflictException;
+import com.noesis.pdf_extractor_tools.exception.InvalidCredentialsException;
 import com.noesis.pdf_extractor_tools.exception.NotFoundException;
 import com.noesis.pdf_extractor_tools.model.User;
 import com.noesis.repository.UserRepository;
@@ -29,21 +32,6 @@ public class UserService {
     public User getUser(final Long id) {
         return userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User Not Found"));
-    }
-
-    public User saveUser(UserRegisterDto userDto) {
-        if (usernameExists(userDto.getUsername())) {
-            throw new ConflictException("Username already exists");
-        }
-        User user = new User();
-        user.setFirstname(userDto.getFirstname());
-        user.setLastname(userDto.getLastname());
-        user.setUsername(userDto.getUsername());
-        user.setMail(userDto.getMail());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
-
-        return userRepository.save(user);
-
     }
 
     public User updateUser(UserUpdateDto userDto, Long id) {
@@ -75,6 +63,22 @@ public class UserService {
 
     public void deleteUser(final Long id) {
         userRepository.deleteById(id);
+    }
+
+    public UserDetails validateCredentials(String email, String rawPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException());
+
+        if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+            throw new InvalidCredentialsException();
+        }
+
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                List.of() // ou les rôles
+        );
+
     }
 
     public boolean usernameExists(String username) {

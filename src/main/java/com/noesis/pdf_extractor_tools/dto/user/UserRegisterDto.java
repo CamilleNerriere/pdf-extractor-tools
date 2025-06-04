@@ -21,7 +21,7 @@ public class UserRegisterDto {
 
     @NotBlank
     @Email
-    private String mail;
+    private String email;
 
     @NotBlank
     @Size(min = 8)
