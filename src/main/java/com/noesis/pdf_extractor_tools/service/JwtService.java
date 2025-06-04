@@ -53,6 +53,10 @@ public class JwtService {
         }
     }
 
+    public String extractEmail(String token) {
+        return extractAllClaims(token).getSubject();
+    }
+
     private Claims extractAllClaims(String token) {
         try {
             return Jwts.parser()

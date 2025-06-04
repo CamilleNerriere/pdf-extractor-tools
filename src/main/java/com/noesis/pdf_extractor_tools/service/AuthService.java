@@ -44,7 +44,7 @@ public class AuthService {
     }
 
     public String login(UserLoginDto userLogin){
-        UserDetails user = userService.validateCredentials(userLogin.getEmail(), userLogin.getPassword());
+        UserDetails user = userService.validateCredentials(userLogin.email(), userLogin.password());
         return jwtService.generateToken(user);
     }
 

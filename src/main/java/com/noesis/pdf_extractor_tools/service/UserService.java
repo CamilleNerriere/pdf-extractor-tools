@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.noesis.pdf_extractor_tools.dto.user.UserInfosDto;
 import com.noesis.pdf_extractor_tools.dto.user.UserUpdateDto;
 import com.noesis.pdf_extractor_tools.exception.ConflictException;
 import com.noesis.pdf_extractor_tools.exception.InvalidCredentialsException;
@@ -29,9 +30,10 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User getUser(final Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("User Not Found"));
+    public UserInfosDto getUser(final String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User Not Found"));
+
+        return new UserInfosDto(user.getFirstname(), user.getLastname(), user.getUsername(), user.getEmail());
     }
 
     public User updateUser(UserUpdateDto userDto, Long id) {

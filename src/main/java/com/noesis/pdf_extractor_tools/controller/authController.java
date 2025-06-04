@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,25 +15,23 @@ import com.noesis.pdf_extractor_tools.dto.user.UserRegisterDto;
 import com.noesis.pdf_extractor_tools.exception.ErrorResponse;
 import com.noesis.pdf_extractor_tools.model.User;
 import com.noesis.pdf_extractor_tools.service.AuthService;
- 
+
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
 public class authController {
 
-    @Autowired
-    AuthService authService;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired    AuthService authService;
 
-    private final boolean IS_DEMO = true;
-
-    public authController(PasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final boolean IS_DEMO = false;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDto user) {
+        if(IS_DEMO){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("This is a demo. Registrations are desabled"));
+        }
+
         User newUser = authService.registerUser(user);
 
         if (newUser != null) {
@@ -56,5 +53,9 @@ public class authController {
 
     }
 
-
+    /**
+     * TODO: Implement logout endpoint for production.
+     * In production, use a token blacklist
+     * to store and check revoked tokens.
+     */
 }
