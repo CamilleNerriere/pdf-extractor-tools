@@ -12,4 +12,10 @@ public class UserUpdateDto {
 
     @Size(min = 4, max = 20)
     private String username;
+
+    public UserUpdateDto(final String firstname, final String lastname, final String username){
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.username = username;
+    }
 }

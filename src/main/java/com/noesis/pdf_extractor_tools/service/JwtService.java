@@ -7,11 +7,13 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import com.noesis.pdf_extractor_tools.config.JwtProperties;
 import com.noesis.pdf_extractor_tools.exception.JwtValidationException;
+import com.noesis.repository.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -22,6 +24,9 @@ import io.jsonwebtoken.UnsupportedJwtException;
 public class JwtService {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
+
+    @Autowired
+    UserRepository userRepository;
 
     private final String secretKey;
     private final long expirationMs;
@@ -42,13 +47,13 @@ public class JwtService {
                 .signWith(key).compact();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token) {
         try {
             Claims claims = extractAllClaims(token);
-            String username = claims.getSubject();
-            return (username.equals(userDetails.getUsername()) && !isTokenExpired(claims));
+            String email = claims.getSubject();
+            return (!isTokenExpired(claims) && userRepository.existsByEmail(email));
         } catch (JwtValidationException e) {
-            logger.error("Invalid token from user {}", userDetails.getUsername());
+            logger.error("Invalid token");
             return false;
         }
     }

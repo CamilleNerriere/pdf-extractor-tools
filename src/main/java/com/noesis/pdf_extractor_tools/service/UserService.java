@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.noesis.pdf_extractor_tools.dto.user.UserInfosDto;
 import com.noesis.pdf_extractor_tools.dto.user.UserUpdateDto;
 import com.noesis.pdf_extractor_tools.exception.ConflictException;
+import com.noesis.pdf_extractor_tools.exception.DatabaseException;
 import com.noesis.pdf_extractor_tools.exception.InvalidCredentialsException;
 import com.noesis.pdf_extractor_tools.exception.NotFoundException;
 import com.noesis.pdf_extractor_tools.model.User;
@@ -36,8 +37,8 @@ public class UserService {
         return new UserInfosDto(user.getFirstname(), user.getLastname(), user.getUsername(), user.getEmail());
     }
 
-    public User updateUser(UserUpdateDto userDto, Long id) {
-        User userToUpdate = userRepository.findById(id)
+    public UserUpdateDto updateUser(UserUpdateDto userDto, String email) {
+        User userToUpdate = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User Not Found"));
 
         if (userDto.getFirstname() != null) {
@@ -60,7 +61,15 @@ public class UserService {
             }
         }
 
-        return userRepository.save(userToUpdate);
+        try {
+            userRepository.save(userToUpdate);
+
+        } catch (Exception e) {
+            throw new DatabaseException("Failed to update user", e);
+        }
+
+        return new UserUpdateDto(userToUpdate.getFirstname(), userToUpdate.getLastname(), userToUpdate.getUsername());
+
     }
 
     public void deleteUser(final Long id) {
