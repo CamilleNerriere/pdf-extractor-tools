@@ -1,4 +1,4 @@
-package com.noesis.pdf_extractor_tools.dto.response;
+package com.noesis.pdf_extractor_tools.dto.auth;
 
 public class TokenResponse {
     private String token;

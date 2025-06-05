@@ -14,14 +14,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.noesis.pdf_extractor_tools.config.RateLimitBuckets;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
+import com.noesis.pdf_extractor_tools.dto.auth.AuthCheckResult;
 import com.noesis.pdf_extractor_tools.mapper.FormatNormalizer;
 import com.noesis.pdf_extractor_tools.model.ExtractionDataRequest;
 import com.noesis.pdf_extractor_tools.service.CitationsService;
+import com.noesis.pdf_extractor_tools.service.JwtService;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.FormatsValidator;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.PdfTitleValidator;
 import com.noesis.pdf_extractor_tools.validation.extractor.pdfFile.CitationPdfValidator;
-import com.noesis.pdf_extractor_tools.web.util.HttpResponseUtils;
+import com.noesis.pdf_extractor_tools.web.utils.HttpResponseUtils;
+import com.noesis.pdf_extractor_tools.web.utils.JwtUtils;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
@@ -35,6 +39,9 @@ public class CitationController {
     @Autowired
     RateLimitBuckets bucket;
 
+    @Autowired
+    JwtService jwtService;
+
     /**
      * Extract citations from PDF and return as ZIP file
      */
@@ -42,7 +49,14 @@ public class CitationController {
     public void extractAnnotations(@RequestParam("file") MultipartFile file,
             @RequestParam("formats") List<String> formats,
             @RequestParam("title") String title,
+            HttpServletRequest request,
             HttpServletResponse response) throws IOException {
+
+        AuthCheckResult authCheckResult = JwtUtils.checkJwtAuth(request, jwtService);
+
+        if (!authCheckResult.valid()) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+        }
 
         try {
 
@@ -63,10 +77,9 @@ public class CitationController {
             citationsService.extractCitations(extractionDataRequest, response);
         } catch (IllegalArgumentException e) {
             logger.warn("Validation Error : {}", e.getMessage());
-            response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Illegal Arguments.");
 
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             handleError(response);
         }
     }

@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.noesis.pdf_extractor_tools.dto.response.TokenResponse;
+import com.noesis.pdf_extractor_tools.dto.auth.TokenResponse;
 import com.noesis.pdf_extractor_tools.dto.user.UserLoginDto;
 import com.noesis.pdf_extractor_tools.dto.user.UserRegisterDto;
 import com.noesis.pdf_extractor_tools.exception.ErrorResponse;

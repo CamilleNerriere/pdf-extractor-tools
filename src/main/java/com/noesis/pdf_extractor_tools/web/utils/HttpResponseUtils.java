@@ -1,4 +1,4 @@
-package com.noesis.pdf_extractor_tools.web.util;
+package com.noesis.pdf_extractor_tools.web.utils;
 
 import java.io.IOException;
 

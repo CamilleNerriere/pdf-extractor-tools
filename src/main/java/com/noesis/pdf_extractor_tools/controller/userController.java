@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.noesis.pdf_extractor_tools.dto.auth.AuthCheckResult;
 import com.noesis.pdf_extractor_tools.dto.user.UserInfosDto;
 import com.noesis.pdf_extractor_tools.dto.user.UserUpdateDto;
 import com.noesis.pdf_extractor_tools.exception.ErrorResponse;
 import com.noesis.pdf_extractor_tools.service.JwtService;
 import com.noesis.pdf_extractor_tools.service.UserService;
-import com.noesis.pdf_extractor_tools.web.util.JwtUtils;
+import com.noesis.pdf_extractor_tools.web.utils.JwtUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -30,11 +31,14 @@ public class userController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
-        String token = JwtUtils.extractToken(request);
+        
+        AuthCheckResult authCheckResult = JwtUtils.checkJwtAuth(request, jwtService);
 
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Unauthorized."));
+        if (!authCheckResult.valid()) {
+            return authCheckResult.error();
         }
+
+        String token = authCheckResult.token();
 
         String email = jwtService.extractEmail(token);
 
@@ -51,17 +55,14 @@ public class userController {
     @PutMapping("/update")
     public ResponseEntity<?> updateUserInfos(@Valid @RequestBody UserUpdateDto userUpdateDto,
             HttpServletRequest request) {
-        String token = JwtUtils.extractToken(request);
 
-        if (token == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Unauthorized."));
+        AuthCheckResult authCheckResult = JwtUtils.checkJwtAuth(request, jwtService);
+
+        if (!authCheckResult.valid()) {
+            return authCheckResult.error();
         }
 
-        boolean isTokenValid = jwtService.validateToken(token);
-
-        if (!isTokenValid) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ErrorResponse("Invalid Token"));
-        }
+        String token = authCheckResult.token();
 
         String email = jwtService.extractEmail(token);
 
