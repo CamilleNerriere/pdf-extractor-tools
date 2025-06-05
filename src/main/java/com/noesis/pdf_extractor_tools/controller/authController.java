@@ -24,7 +24,7 @@ public class authController {
 
     @Autowired    AuthService authService;
 
-    private final boolean IS_DEMO = false;
+    private final boolean IS_DEMO = true;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody UserRegisterDto user) {
