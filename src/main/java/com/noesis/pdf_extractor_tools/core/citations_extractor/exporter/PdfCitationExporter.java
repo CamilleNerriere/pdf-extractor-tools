@@ -21,6 +21,7 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.Bl
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.TradCitationWithNote;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.context.ExporterContext;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.exception.ExportException;
 
 public class PdfCitationExporter implements ICitationExporter {
 
@@ -44,7 +45,7 @@ public class PdfCitationExporter implements ICitationExporter {
     }
 
     @Override
-    public ExportedFile export() {
+    public ExportedFile export() throws IOException, ExportException {
         Path tempFile = null;
 
         try (PDDocument document = new PDDocument()) {
@@ -169,7 +170,8 @@ public class PdfCitationExporter implements ICitationExporter {
                 }
             }
 
-            return null;
+            throw new ExportException("Unable to export PDF for Citation extraction");
+
         }
     }
 

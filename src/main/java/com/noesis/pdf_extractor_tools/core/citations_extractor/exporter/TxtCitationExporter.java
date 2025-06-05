@@ -16,6 +16,7 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.Bl
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.TradCitationWithNote;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.context.ExporterContext;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.exception.ExportException;
 
 public class TxtCitationExporter implements ICitationExporter {
 
@@ -40,7 +41,7 @@ public class TxtCitationExporter implements ICitationExporter {
     }
 
     @Override
-    public ExportedFile export() throws IOException {
+    public ExportedFile export() throws IOException, ExportException {
 
         Path tempFile = null;
         String fileName = generatePathName(title);
@@ -124,7 +125,8 @@ public class TxtCitationExporter implements ICitationExporter {
                 }
             }
 
-            return null;
+            throw new ExportException("Unable to export TXT for Citation extraction");
+
         }
 
     }

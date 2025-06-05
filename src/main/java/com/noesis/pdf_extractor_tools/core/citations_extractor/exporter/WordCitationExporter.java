@@ -34,16 +34,17 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.Bl
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.citation.TradCitationWithNote;
 import com.noesis.pdf_extractor_tools.core.citations_extractor.model.context.ExporterContext;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.exception.ExportException;
 
 public class WordCitationExporter implements ICitationExporter {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(WordCitationExporter.class);
-    
+
     private final String title;
     private final LinkedHashMap<Integer, List<TradCitationWithNote>> tradCitations;
     private final LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations;
     private final LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations;
-    
+
     private WordprocessingMLPackage wordPackage;
     private MainDocumentPart mainDocumentPart;
     private final ObjectFactory factory;
@@ -57,7 +58,7 @@ public class WordCitationExporter implements ICitationExporter {
     }
 
     @Override
-    public ExportedFile export() throws IOException {
+    public ExportedFile export() throws IOException, ExportException {
         String fileName = generatePathName(title);
         Path tempFile = null;
 
@@ -149,7 +150,8 @@ public class WordCitationExporter implements ICitationExporter {
                     logger.warn("Failed to delete temporary file: {}", tempFile, ex);
                 }
             }
-            return null;
+            throw new ExportException("Unable to export WORD for Citation extraction");
+
         }
     }
 

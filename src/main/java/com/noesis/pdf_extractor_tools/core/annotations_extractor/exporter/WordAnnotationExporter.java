@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.exception.ExportException;
 
 public class WordAnnotationExporter implements IAnnotationExporter {
 
@@ -48,7 +49,7 @@ public class WordAnnotationExporter implements IAnnotationExporter {
     }
 
     @Override
-    public ExportedFile export() throws IOException {
+    public ExportedFile export() throws IOException, ExportException {
         String fileName = generatePathName(title);
         Path tempFile = null;
 
@@ -98,7 +99,8 @@ public class WordAnnotationExporter implements IAnnotationExporter {
                     logger.warn("Failed to delete temporary file: {}", tempFile, ex);
                 }
             }
-            return null;
+            throw new ExportException("Unable to export WORD for Annotation extraction");
+
         }
     }
 
@@ -111,7 +113,7 @@ public class WordAnnotationExporter implements IAnnotationExporter {
             stylesPart.getContents().getStyle().add(normalStyle);
         }
         configureStyleFont(normalStyle);
-        
+
         // Créer le style Title
         Style titleStyle = (Style) stylesPart.getStyleById("Title");
         if (titleStyle == null) {
@@ -127,23 +129,23 @@ public class WordAnnotationExporter implements IAnnotationExporter {
         style.setName(factory.createStyleName());
         style.getName().setVal("Title");
         style.setType("paragraph");
-        
+
         // Configuration du style titre
         RPr rpr = factory.createRPr();
         RFonts runFont = new RFonts();
         runFont.setAscii("Arial");
         runFont.setHAnsi("Arial");
         rpr.setRFonts(runFont);
-        
+
         // Titre en gras et plus grand
         BooleanDefaultTrue bold = new BooleanDefaultTrue();
         rpr.setB(bold);
-        
+
         HpsMeasure fontSize = factory.createHpsMeasure();
         fontSize.setVal(BigInteger.valueOf(32)); // 16pt
         rpr.setSz(fontSize);
         rpr.setSzCs(fontSize);
-        
+
         style.setRPr(rpr);
         return style;
     }

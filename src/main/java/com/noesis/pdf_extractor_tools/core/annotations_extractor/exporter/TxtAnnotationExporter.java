@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.exception.ExportException;
 
 public class TxtAnnotationExporter implements IAnnotationExporter {
     private static final Logger logger = LoggerFactory.getLogger(TxtAnnotationExporter.class);
@@ -29,7 +30,7 @@ public class TxtAnnotationExporter implements IAnnotationExporter {
     }
 
     @Override
-    public ExportedFile export() {
+    public ExportedFile export() throws ExportException {
         Path tempFile = null;
         String fileName = generatePathName(title);
         content = new StringBuilder();
@@ -73,7 +74,7 @@ public class TxtAnnotationExporter implements IAnnotationExporter {
                 }
             }
 
-            return null;
+            throw new ExportException("Unable to export TXT for Annotation extraction");
 
         }
     }

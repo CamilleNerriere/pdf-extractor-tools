@@ -47,6 +47,8 @@ import com.noesis.pdf_extractor_tools.core.citations_extractor.pdf.utils.ICoordS
 import com.noesis.pdf_extractor_tools.core.citations_extractor.pdf.utils.IFontStats;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.exception.ExportException;
+import com.noesis.pdf_extractor_tools.core.exception.ExtractException;
 
 
 @Component
@@ -55,16 +57,16 @@ public class CoreCitationsExtractorService implements ICoreCitationsExtractorSer
     private static final Logger logger = LoggerFactory.getLogger(CoreCitationsExtractorService.class);
 
     @Override
-    public List<ExportedFile> extract(InputStream pdfInput, List<ExportFormats> formats, String title) throws IOException {
+    public List<ExportedFile> extract(InputStream pdfInput, List<ExportFormats> formats, String title) throws IOException, ExtractException, ExportException {
         AllTypeCitationsResult extractionResult = getCitationsResult(pdfInput);
         if (extractionResult != null) {
             ExporterContext exporterContext = generateContext(title, extractionResult);
             return getExtractionResult(exporterContext, formats);
         }
-        return null;
+        throw new ExtractException();
     }
 
-    private AllTypeCitationsResult getCitationsResult(InputStream pdfInput) {
+    private AllTypeCitationsResult getCitationsResult(InputStream pdfInput) throws ExtractException {
 
         try (RandomAccessRead rar = new RandomAccessReadBuffer(pdfInput);
                 PDDocument document = Loader.loadPDF(rar)) {
@@ -90,12 +92,12 @@ public class CoreCitationsExtractorService implements ICoreCitationsExtractorSer
 
         } catch (Exception e) {
             logger.error("Error during citations extraction.");
-            return null;
+            throw new ExtractException();
         }
     }
 
     private List<ExportedFile> getExtractionResult(ExporterContext exporterContext,
-            List<ExportFormats> formats) throws IOException {
+            List<ExportFormats> formats) throws IOException, ExportException {
 
         List<ExportedFile> exportedFiles = new ArrayList<>();
 

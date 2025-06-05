@@ -20,6 +20,9 @@ import com.noesis.pdf_extractor_tools.core.annotations_extractor.extractor.Extra
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
 import com.noesis.pdf_extractor_tools.core.common.ExportedFile;
+import com.noesis.pdf_extractor_tools.core.exception.ExportException;
+import com.noesis.pdf_extractor_tools.core.exception.ExtractException;
+import com.noesis.pdf_extractor_tools.core.exception.MissingArgumentException;
 
 @Component
 public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtractorService {
@@ -28,7 +31,7 @@ public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtracto
 
     @Override
     public List<ExportedFile> extract(InputStream pdfInput, List<ExportFormats> formats, String title)
-            throws IOException {
+            throws IOException, ExtractException, MissingArgumentException, ExportException {
         LinkedHashMap<Integer, List<Annotation>> extractedAnnotations = getAnnotations(pdfInput);
 
         if(extractedAnnotations != null && !extractedAnnotations.isEmpty()){
@@ -37,19 +40,19 @@ public class CoreAnnotationsExtractorService implements ICoreAnnotationsExtracto
         return null;
     }
 
-    private LinkedHashMap<Integer, List<Annotation>> getAnnotations(InputStream pdfInput) {
+    private LinkedHashMap<Integer, List<Annotation>> getAnnotations(InputStream pdfInput) throws ExtractException {
         try (RandomAccessRead rar = new RandomAccessReadBuffer(pdfInput);
                 PDDocument document = Loader.loadPDF(rar)) {
             Extractor extractor = new Extractor();
             return extractor.getAnnotations(document);
         } catch (Exception e) {
             logger.error("Error during citations extraction.");
-            return null;
+            throw new ExtractException();
         }
     }
 
     private List<ExportedFile> getExtractionResult(LinkedHashMap<Integer, List<Annotation>> annotations,
-            List<ExportFormats> formats, String title) throws IOException {
+            List<ExportFormats> formats, String title) throws IOException, MissingArgumentException, ExportException {
 
         String exportTitle = title == null ? "Annotations" : title;
         ExporterFactory exporterFactory = new ExporterFactory();

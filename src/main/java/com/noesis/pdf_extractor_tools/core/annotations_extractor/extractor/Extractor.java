@@ -12,11 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.noesis.pdf_extractor_tools.core.annotations_extractor.model.Annotation;
+import com.noesis.pdf_extractor_tools.core.exception.ExtractException;
 
 public class Extractor {
     private static final Logger logger = LoggerFactory.getLogger(Extractor.class);
 
-    public LinkedHashMap<Integer, List<Annotation>> getAnnotations(PDDocument document) throws IOException {
+    public LinkedHashMap<Integer, List<Annotation>> getAnnotations(PDDocument document) throws IOException, ExtractException {
         try (document) {
             int pageNum = 1;
             LinkedHashMap<Integer, List<Annotation>> allAnnotations = new LinkedHashMap<>();
@@ -32,11 +33,11 @@ public class Extractor {
             return allAnnotations;
         } catch (Exception e) {
             logger.error("Error during extractor execution", e);
+            throw new ExtractException();
         }
-        return null;
     }
 
-    private List<Annotation> getAnnotationsPerPage(PDPage page, int pageNum) throws IOException {
+    private List<Annotation> getAnnotationsPerPage(PDPage page, int pageNum) throws IOException, ExtractException {
         try {
             List<PDAnnotation> annotations = page.getAnnotations();
             List<Annotation> extractedAnnotations = new ArrayList<>();
@@ -50,6 +51,6 @@ public class Extractor {
         } catch (IOException e) {
             logger.error("Error during page extraction {}", pageNum, e);
         }
-        return null;
+        throw new ExtractException();
     }
 }
