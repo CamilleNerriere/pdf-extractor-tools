@@ -5,6 +5,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -19,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class StrictRateLimiter implements HandlerInterceptor {
+    private static final Logger logger = LoggerFactory.getLogger(StrictRateLimiter.class);
     /* TODO : Add Redis Cache in Prod */
     private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
 
@@ -32,9 +35,13 @@ public class StrictRateLimiter implements HandlerInterceptor {
     @Override
     public boolean preHandle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) throws IOException {
         String ip = request.getRemoteAddr();
+        String url = request.getRequestURI();
         Bucket bucket = strictBucket(ip);
         if(!bucket.tryConsume(1)){
-            HttpResponseUtils.sendRateLimitExceeded(response, 60);
+            long waitForTokenSeconds = bucket.estimateAbilityToConsume(1)
+                .getNanosToWaitForRefill() / 1_000_000_000L;
+            HttpResponseUtils.sendRateLimitExceeded(response, waitForTokenSeconds);
+            logger.warn("Too many requests from IP {} on URL {}", ip, url);
             return false;
         }
         return true;

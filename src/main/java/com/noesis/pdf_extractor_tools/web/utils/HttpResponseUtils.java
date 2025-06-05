@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class HttpResponseUtils {
     private static final Logger logger = LoggerFactory.getLogger(HttpResponseUtils.class);
 
-    public static void sendRateLimitExceeded(HttpServletResponse response, int retryAfterSeconds) {
+    public static void sendRateLimitExceeded(HttpServletResponse response, long retryAfterSeconds) {
         try {
             response.setStatus(429);
             response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
