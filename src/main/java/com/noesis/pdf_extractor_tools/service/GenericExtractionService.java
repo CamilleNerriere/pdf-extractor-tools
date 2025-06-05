@@ -44,7 +44,7 @@ public class GenericExtractionService {
 
             List<ExportedFile> files = extractor.extract(pdf, formats, title);
 
-            if (files.isEmpty()) {
+            if (files == null || files.isEmpty()) {
                 logger.warn("No export files created.");
                 response.sendError(HttpServletResponse.SC_NO_CONTENT, "No data found");
                 return;
