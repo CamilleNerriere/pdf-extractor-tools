@@ -1,5 +1,6 @@
 package com.noesis.pdf_extractor_tools;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
@@ -27,5 +28,13 @@ public class JwtServiceTest {
     void shouldRejectInvalidToken(){
         String token = "invalid.token";
         assertFalse(jwtService.validateToken(token));
+    }
+
+    @Test
+    void extractCorrectlyEmail(){
+        UserDetails userDetails = User.builder().username("demo.user@example.com").password("superSecretPassword").roles("USER").build();
+        String token = jwtService.generateToken(userDetails);
+        String email = jwtService.extractEmail(token);
+        assertEquals("demo.user@example.com", email);
     }
 }
