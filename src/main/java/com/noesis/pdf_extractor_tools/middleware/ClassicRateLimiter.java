@@ -25,7 +25,7 @@ public class ClassicRateLimiter implements HandlerInterceptor {
     private Bucket generalBucket(String ip) {
         return buckets.computeIfAbsent(ip,
                 k -> Bucket.builder()
-        .addLimit(Bandwidth.classic(100, Refill.intervally(100, Duration.ofMinutes(15))))
+        .addLimit(Bandwidth.classic(100, Refill.greedy(5, Duration.ofMinutes(15))))
         .build());
     }
 

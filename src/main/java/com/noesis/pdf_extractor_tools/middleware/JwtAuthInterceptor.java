@@ -3,6 +3,7 @@ package com.noesis.pdf_extractor_tools.middleware;
 import java.io.IOException;
 
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import com.noesis.pdf_extractor_tools.service.JwtService;
@@ -11,6 +12,7 @@ import com.noesis.pdf_extractor_tools.web.utils.JwtUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+@Component
 public class JwtAuthInterceptor implements HandlerInterceptor {
     private final JwtService jwtService;
 

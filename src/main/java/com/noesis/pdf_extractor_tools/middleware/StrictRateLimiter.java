@@ -25,7 +25,7 @@ public class StrictRateLimiter implements HandlerInterceptor {
     private Bucket strictBucket(String ip) {
         return buckets.computeIfAbsent(ip,
                 k -> Bucket.builder()
-        .addLimit(Bandwidth.classic(5, Refill.intervally(5, Duration.ofMinutes(1))))
+        .addLimit(Bandwidth.classic(5, Refill.greedy(5, Duration.ofMinutes(1))))
         .build());
     }
 
