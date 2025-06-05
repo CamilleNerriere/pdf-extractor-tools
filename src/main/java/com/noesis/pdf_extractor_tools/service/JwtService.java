@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.noesis.pdf_extractor_tools.config.JwtProperties;
 import com.noesis.pdf_extractor_tools.exception.JwtValidationException;
-import com.noesis.repository.UserRepository;
+import com.noesis.pdf_extractor_tools.repository.UserRepository;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

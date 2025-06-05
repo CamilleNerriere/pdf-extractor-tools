@@ -1,4 +1,4 @@
-package com.noesis.repository;
+package com.noesis.pdf_extractor_tools.repository;
 
 import java.util.Optional;
 

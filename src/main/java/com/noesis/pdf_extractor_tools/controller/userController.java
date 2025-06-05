@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.noesis.pdf_extractor_tools.dto.auth.AuthCheckResult;
 import com.noesis.pdf_extractor_tools.dto.user.UserInfosDto;
 import com.noesis.pdf_extractor_tools.dto.user.UserUpdateDto;
 import com.noesis.pdf_extractor_tools.exception.ErrorResponse;
@@ -31,14 +30,8 @@ public class userController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getUserInfo(HttpServletRequest request) {
-        
-        AuthCheckResult authCheckResult = JwtUtils.checkJwtAuth(request, jwtService);
 
-        if (!authCheckResult.valid()) {
-            return authCheckResult.error();
-        }
-
-        String token = authCheckResult.token();
+        String token = JwtUtils.extractToken(request);
 
         String email = jwtService.extractEmail(token);
 
@@ -56,13 +49,7 @@ public class userController {
     public ResponseEntity<?> updateUserInfos(@Valid @RequestBody UserUpdateDto userUpdateDto,
             HttpServletRequest request) {
 
-        AuthCheckResult authCheckResult = JwtUtils.checkJwtAuth(request, jwtService);
-
-        if (!authCheckResult.valid()) {
-            return authCheckResult.error();
-        }
-
-        String token = authCheckResult.token();
+        String token = JwtUtils.extractToken(request);
 
         String email = jwtService.extractEmail(token);
 

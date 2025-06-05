@@ -8,27 +8,26 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.noesis.pdf_extractor_tools.config.RateLimitBuckets;
+import com.noesis.pdf_extractor_tools.config.SpecificLimitRates;
 import com.noesis.pdf_extractor_tools.core.common.ExportFormats;
-import com.noesis.pdf_extractor_tools.dto.auth.AuthCheckResult;
 import com.noesis.pdf_extractor_tools.mapper.FormatNormalizer;
 import com.noesis.pdf_extractor_tools.model.ExtractionDataRequest;
 import com.noesis.pdf_extractor_tools.service.CitationsService;
-import com.noesis.pdf_extractor_tools.service.JwtService;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.FormatsValidator;
 import com.noesis.pdf_extractor_tools.validation.extractor.fields.PdfTitleValidator;
 import com.noesis.pdf_extractor_tools.validation.extractor.pdfFile.CitationPdfValidator;
 import com.noesis.pdf_extractor_tools.web.utils.HttpResponseUtils;
-import com.noesis.pdf_extractor_tools.web.utils.JwtUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
+@RequestMapping("/extract")
 public class CitationController {
 
     private static final Logger logger = LoggerFactory.getLogger(CitationController.class);
@@ -37,26 +36,18 @@ public class CitationController {
     private CitationsService citationsService;
 
     @Autowired
-    RateLimitBuckets bucket;
+    SpecificLimitRates bucket;
 
-    @Autowired
-    JwtService jwtService;
 
     /**
      * Extract citations from PDF and return as ZIP file
      */
-    @PostMapping(path = "/extract/citations", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+    @PostMapping(path = "/citations", consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public void extractAnnotations(@RequestParam("file") MultipartFile file,
             @RequestParam("formats") List<String> formats,
             @RequestParam("title") String title,
             HttpServletRequest request,
             HttpServletResponse response) throws IOException {
-
-        AuthCheckResult authCheckResult = JwtUtils.checkJwtAuth(request, jwtService);
-
-        if (!authCheckResult.valid()) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        }
 
         try {
 

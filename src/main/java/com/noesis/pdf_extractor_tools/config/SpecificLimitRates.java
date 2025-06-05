@@ -9,7 +9,7 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
 
 @Component
-public class RateLimitBuckets {
+public class SpecificLimitRates {
     public final Bucket citationBucket = Bucket.builder()
         .addLimit(Bandwidth.classic(3, Refill.intervally(1, Duration.ofMinutes(1))))
         .build();

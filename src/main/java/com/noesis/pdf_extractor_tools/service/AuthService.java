@@ -9,7 +9,7 @@ import com.noesis.pdf_extractor_tools.dto.user.UserLoginDto;
 import com.noesis.pdf_extractor_tools.dto.user.UserRegisterDto;
 import com.noesis.pdf_extractor_tools.exception.ConflictException;
 import com.noesis.pdf_extractor_tools.model.User;
-import com.noesis.repository.UserRepository;
+import com.noesis.pdf_extractor_tools.repository.UserRepository;
 
 @Service
 public class AuthService {

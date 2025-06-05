@@ -14,7 +14,7 @@ import com.noesis.pdf_extractor_tools.exception.DatabaseException;
 import com.noesis.pdf_extractor_tools.exception.InvalidCredentialsException;
 import com.noesis.pdf_extractor_tools.exception.NotFoundException;
 import com.noesis.pdf_extractor_tools.model.User;
-import com.noesis.repository.UserRepository;
+import com.noesis.pdf_extractor_tools.repository.UserRepository;
 
 import lombok.Data;
 
