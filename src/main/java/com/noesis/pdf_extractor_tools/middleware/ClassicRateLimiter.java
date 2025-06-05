@@ -43,8 +43,8 @@ public class ClassicRateLimiter implements HandlerInterceptor {
                 .getNanosToWaitForRefill() / 1_000_000_000L;
 
         if (!bucket.tryConsume(1)) {
-            HttpResponseUtils.sendRateLimitExceeded(response, waitForTokenSeconds);
             logger.warn("Too many requests from IP {} on URL {}", ip, url);
+            HttpResponseUtils.sendRateLimitExceeded(response, waitForTokenSeconds);
             return false;
         }
         return true;

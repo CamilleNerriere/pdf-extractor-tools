@@ -38,7 +38,6 @@ public class CitationController {
     @Autowired
     SpecificLimitRates bucket;
 
-
     /**
      * Extract citations from PDF and return as ZIP file
      */
@@ -49,10 +48,14 @@ public class CitationController {
             HttpServletRequest request,
             HttpServletResponse response) throws IOException {
 
+        String ip = request.getRemoteAddr();
+        String url = request.getRequestURI();
+
         try {
 
             if (!bucket.citationBucket.tryConsume(1)) {
                 logger.warn("Rate limit exceeded on /extract/citations");
+                logger.warn("Too many requests from IP {} on URL {}", ip, url);
                 HttpResponseUtils.sendRateLimitExceeded(response, 60);
                 return;
             }

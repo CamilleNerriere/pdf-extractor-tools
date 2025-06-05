@@ -48,11 +48,14 @@ public class AnnotationsController {
             HttpServletRequest request,
             HttpServletResponse response) throws IOException {
 
+        String ip = request.getRemoteAddr();
+        String url = request.getRequestURI();
 
         try {
 
             if (!bucket.annotationBucket.tryConsume(1)) {
                 logger.warn("Rate limit exceeded on /extract/annotation");
+                logger.warn("Too many requests from IP {} on URL {}", ip, url);
                 HttpResponseUtils.sendRateLimitExceeded(response, 60);
                 return;
             }
