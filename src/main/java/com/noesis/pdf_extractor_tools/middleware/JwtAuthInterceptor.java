@@ -24,6 +24,15 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
     public boolean preHandle(@NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull Object handler) throws IOException {
+
+        System.out.println("=== JwtAuthInterceptor ===");
+        System.out.println("Method: " + request.getMethod());
+        System.out.println("URI: " + request.getRequestURI());
+        System.out.println("Origin: " + request.getHeader("Origin"));
+
+        if ("OPTIONS".equals(request.getMethod())) {
+            return true;
+        }
         String token = JwtUtils.extractToken(request);
         if (token == null || !jwtService.validateToken(token)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
