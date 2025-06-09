@@ -1,6 +1,7 @@
 package com.noesis.pdf_extractor_tools.config;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,17 +23,17 @@ import com.noesis.pdf_extractor_tools.security.JwtAuthentificationFilter;
 @Configuration
 public class SecurityConfig {
 
-
     @Value("${allowed.origins}")
     private String allowedOrigins;
-
 
     @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOriginPatterns(Arrays.asList(allowedOrigins.split(",")));
+        config.setAllowedOriginPatterns(List.of(
+                "https://noesis-pdf-tools.vercel.app",
+                "http://localhost:4200"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(Arrays.asList("*"));
         config.setAllowCredentials(true);
