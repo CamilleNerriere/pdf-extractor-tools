@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/auth")
-public class authController {
+public class AuthController {
 
     private final JwtService jwtService;
 
@@ -32,8 +32,13 @@ public class authController {
 
     private final boolean IS_DEMO = true;
 
-    authController(JwtService jwtService) {
+    AuthController(JwtService jwtService) {
         this.jwtService = jwtService;
+    }
+
+    @GetMapping("/auth/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("pong");
     }
 
     @PostMapping("/register")
