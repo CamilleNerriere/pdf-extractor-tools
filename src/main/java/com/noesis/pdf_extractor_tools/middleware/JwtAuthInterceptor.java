@@ -1,8 +1,11 @@
 package com.noesis.pdf_extractor_tools.middleware;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -41,6 +44,17 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        String email = jwtService.extractEmail(token);
+
+        System.out.println("ON PASSE ICI");
+
+        System.out.println(email);
+
+        if (email != null) {
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null,
+                    List.of());
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+        }
         return true;
     }
 }

@@ -13,15 +13,24 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
+import com.noesis.pdf_extractor_tools.security.JwtAuthentificationFilter;
+
 @Configuration
 public class SecurityConfig {
 
+    private final JwtAuthentificationFilter jwtAuthentificationFilter;
+
     @Value("${allowed.origins}")
     private String allowedOrigins;
+
+    SecurityConfig(JwtAuthentificationFilter jwtAuthentificationFilter) {
+        this.jwtAuthentificationFilter = jwtAuthentificationFilter;
+    }
 
     @Bean
     public CorsFilter corsFilter() {
@@ -40,15 +49,18 @@ public class SecurityConfig {
 
     @Bean
     @Profile("!test")
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthentificationFilter jwtAuthentificationFilter)
+            throws Exception {
         http
-                .cors(Customizer.withDefaults()) // Le CorsFilter s'en occupe maintenant
+                .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthentificationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 

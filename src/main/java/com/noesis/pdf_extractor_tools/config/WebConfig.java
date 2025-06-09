@@ -18,22 +18,19 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final StrictRateLimiter strictRateLimiter;
 
-    private final JwtAuthInterceptor jwtAuthInterceptor;
 
     public WebConfig(ClassicRateLimiter classicRateLimiter, StrictRateLimiter strictRateLimiter,
             JwtAuthInterceptor jwtAuthInterceptor) {
         this.classicRateLimiter = classicRateLimiter;
         this.strictRateLimiter = strictRateLimiter;
-        this.jwtAuthInterceptor = jwtAuthInterceptor;
     }
 
     @Override
     public void addInterceptors(@NonNull InterceptorRegistry registry) {
+        System.out.println("✔ WebConfig initialisé");
         registry.addInterceptor(classicRateLimiter).addPathPatterns("/**").excludePathPatterns("/extract/**",
                 "/auth/**");
         registry.addInterceptor(strictRateLimiter).addPathPatterns("/auth/**");
-        registry.addInterceptor(jwtAuthInterceptor).addPathPatterns("/extract/**", "/user/**")
-                .excludePathPatterns("/auth/**");
     }
 
 }
