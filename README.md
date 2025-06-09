@@ -19,7 +19,7 @@ You can find it as an individual tool [here](https://github.com/CamilleNerriere/
 
 As it is still a demo, registration is disabled. A basic demo user is provided to try the main functionalities. 
 
-## Technical Details
+## Technical details
 
 ### Tech Stack
 
@@ -52,10 +52,11 @@ As it is still a demo, registration is disabled. A basic demo user is provided t
 
 | Feature                | Path                      | Description                          |
 |------------------------|---------------------------|--------------------------------------|
-| **Register**           | GET /auth/register      | Returns new user non sensitive infos  - disactivated in demo mode                       |
-| **Login**              | POST /auth/login        | Returns JWT                          |
-| **User Info**          | GET /user/me            | Requires JWT                         |
-| **Update User**        | PUT /user/update        | Auth required                        |
-| **Citation Extraction**| POST /extract/citations | File + formats, returns ZIP          |
-| **Annotation Extraction** | POST /extract/annotations | File + formats, returns ZIP      |
+| **Register**           | `GET /auth/register`      | Returns new user non sensitive infos  - disactivated in demo mode                       |
+| **Login**              | `POST /auth/login`        | Returns JWT                          |
+| **User Info**          | `GET /user/me`            | Requires JWT                         |
+| **Update User**        | `PUT /user/update`        | Auth required                        |
+| **Citation Extraction**| `POST /extract/citations` | File + formats, returns ZIP          |
+| **Annotation Extraction** | `POST /extract/annotations` | File + formats, returns ZIP      |
+
 

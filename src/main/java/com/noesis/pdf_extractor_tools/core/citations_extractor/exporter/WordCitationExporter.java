@@ -2,7 +2,6 @@ package com.noesis.pdf_extractor_tools.core.citations_extractor.exporter;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
@@ -10,22 +9,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.docx4j.jaxb.Context;
-import org.docx4j.openpackaging.exceptions.Docx4JException;
-import org.docx4j.openpackaging.packages.WordprocessingMLPackage;
-import org.docx4j.openpackaging.parts.WordprocessingML.MainDocumentPart;
-import org.docx4j.wml.BooleanDefaultTrue;
-import org.docx4j.wml.Color;
-import org.docx4j.wml.HpsMeasure;
-import org.docx4j.wml.Jc;
-import org.docx4j.wml.JcEnumeration;
-import org.docx4j.wml.ObjectFactory;
-import org.docx4j.wml.P;
-import org.docx4j.wml.PPr;
-import org.docx4j.wml.R;
-import org.docx4j.wml.RFonts;
-import org.docx4j.wml.RPr;
-import org.docx4j.wml.Text;
+import org.apache.poi.xwpf.usermodel.ParagraphAlignment;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.apache.poi.xwpf.usermodel.XWPFParagraph;
+import org.apache.poi.xwpf.usermodel.XWPFRun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,29 +32,26 @@ public class WordCitationExporter implements ICitationExporter {
     private final LinkedHashMap<Integer, List<BlocCitationWithNote>> blocCitations;
     private final LinkedHashMap<Integer, List<AnnotatedHarvardCitation>> harvardCitations;
 
-    private WordprocessingMLPackage wordPackage;
-    private MainDocumentPart mainDocumentPart;
-    private final ObjectFactory factory;
-
     public WordCitationExporter(ExporterContext context) {
         this.title = context.getTitle();
         this.tradCitations = context.getTradCitations();
         this.blocCitations = context.getBlocCitations();
         this.harvardCitations = context.getHarvardCitations();
-        this.factory = Context.getWmlObjectFactory();
     }
 
     @Override
     public ExportedFile export() throws IOException, ExportException {
+
         String fileName = generatePathName(title);
         Path tempFile = null;
+        XWPFDocument document = null;
+        FileOutputStream out = null;
 
         try {
-            initializeDocument();
+            document = new XWPFDocument();
 
-            // main title
-            addTitle(title);
-            addLineBreak();
+            addTitle(document, title);
+            addLineBreak(document);
 
             Set<Integer> allPages = new TreeSet<>();
             allPages.addAll(tradCitations.keySet());
@@ -83,246 +67,169 @@ public class WordCitationExporter implements ICitationExporter {
                     continue;
                 }
 
-                addPageTitle("Page " + page);
-                addLineBreak();
+                addPageTitle(document, "Page " + page);
+                addLineBreak(document);
 
-                // classical citations
+                // classical citation treatment
                 List<TradCitationWithNote> classical = tradCitations.get(page);
                 if (classical != null && !classical.isEmpty()) {
-                    addSectionTitle("Classical Type Citation");
-
+                    addSectionTitle(document, "Classical Type Citation");
                     for (TradCitationWithNote citation : classical) {
                         String cit = citation.getContent();
                         String noteNumber = citation.getNoteNumber();
                         String footnote = citation.getFootnote();
-
-                        addCitationEntry("Note " + noteNumber + " : " + cit, "Footnote : " + footnote);
+                        addCitationEntry(document, "Note " + noteNumber + " : " + cit, "Footnote : " + footnote);
                     }
-                    addLineBreak();
+                    addLineBreak(document);
                 }
 
-                // havard citation
+                // havard citation treatment
                 List<AnnotatedHarvardCitation> harvard = harvardCitations.get(page);
                 if (harvard != null && !harvard.isEmpty()) {
-                    addSectionTitle("Harvard Type Citation");
-
+                    addSectionTitle(document, "Harvard Type Citation");
                     for (AnnotatedHarvardCitation citation : harvard) {
                         String cit = citation.getContent();
                         String note = citation.getNoteContent();
-
-                        addCitationEntry(cit, "Note : " + note);
+                        addCitationEntry(document, cit, "Note : " + note);
                     }
-                    addLineBreak();
+                    addLineBreak(document);
                 }
 
-                // bloc citation
+                // bloc citation treatment
                 List<BlocCitationWithNote> bloc = blocCitations.get(page);
                 if (bloc != null && !bloc.isEmpty()) {
-                    addSectionTitle("Bloc Type Citation");
-
+                    addSectionTitle(document, "Bloc Type Citation");
                     for (BlocCitationWithNote citation : bloc) {
                         String cit = citation.getContent();
                         String noteNumber = citation.getNoteNumber();
                         String footnote = citation.getFootnote();
-
-                        addCitationEntry("Note " + noteNumber + " : " + cit, "Footnote : " + footnote);
+                        addCitationEntry(document, "Note " + noteNumber + " : " + cit, "Footnote : " + footnote);
                     }
-                    addLineBreak();
+                    addLineBreak(document);
                 }
-
             }
 
-            tempFile = Files.createTempFile(title, ".pdf");
-            wordPackage.save(tempFile.toFile());
+            tempFile = Files.createTempFile(sanitizeFileName(title), ".docx");
 
-            logger.info("Docx export completed");
+            out = new FileOutputStream(tempFile.toFile());
+            document.write(out);
+
+            logger.info("Docx export completed successfully");
 
             return new ExportedFile(fileName, tempFile);
 
-        } catch (IOException | Docx4JException e) {
+        } catch (IOException e) {
+            logger.error("Error during word export", e);
 
-            logger.warn("Error during docx export", e);
-            if (tempFile != null) {
-                try {
-                    Files.deleteIfExists(tempFile);
-                    logger.info("Temporary file deleted after failure: {}", tempFile);
-                } catch (IOException ex) {
-                    logger.warn("Failed to delete temporary file: {}", tempFile, ex);
-                }
-            }
+            cleanupTempFile(tempFile);
+
             throw new ExportException("Unable to export WORD for Citation extraction");
 
+        } finally {
+            try {
+                if (out != null) {
+                    out.close();
+                }
+                if (document != null) {
+                    document.close();
+                }
+            } catch (IOException e) {
+                logger.warn("Error closing resources", e);
+            }
         }
     }
 
-    private void initializeDocument() throws Docx4JException {
-        wordPackage = WordprocessingMLPackage.createPackage();
-        mainDocumentPart = wordPackage.getMainDocumentPart();
+    private void addTitle(XWPFDocument document, String titleText) {
+        XWPFParagraph titleParagraph = document.createParagraph();
+        titleParagraph.setAlignment(ParagraphAlignment.CENTER);
+        titleParagraph.setSpacingAfter(300); // Espacement après le titre
+
+        XWPFRun titleRun = titleParagraph.createRun();
+        titleRun.setText(titleText != null ? titleText : "Citations Document");
+        titleRun.setBold(true);
+        titleRun.setFontSize(18);
+        titleRun.setFontFamily("Arial");
     }
 
-    private void addTitle(String titleText) {
-        P paragraph = factory.createP();
+    private void addPageTitle(XWPFDocument document, String pageTitle) {
+        XWPFParagraph pageParagraph = document.createParagraph();
+        pageParagraph.setSpacingBefore(300); 
+        pageParagraph.setSpacingAfter(150); 
 
-        // bold and center
-        PPr pPr = factory.createPPr();
-        Jc justification = factory.createJc();
-        justification.setVal(JcEnumeration.CENTER);
-        pPr.setJc(justification);
-        paragraph.setPPr(pPr);
-
-        R run = factory.createR();
-        RPr rPr = factory.createRPr();
-        BooleanDefaultTrue bold = factory.createBooleanDefaultTrue();
-        rPr.setB(bold);
-
-        RFonts fonts = factory.createRFonts();
-        fonts.setAscii("Arial");
-        fonts.setHAnsi("Arial");
-        rPr.setRFonts(fonts);
-
-        Color color = factory.createColor();
-        color.setVal("073869");
-        rPr.setColor(color);
-
-        // font size
-        HpsMeasure fontSize = factory.createHpsMeasure();
-        fontSize.setVal(BigInteger.valueOf(32)); // 16pt
-        rPr.setSz(fontSize);
-        rPr.setSzCs(fontSize);
-
-        run.setRPr(rPr);
-
-        Text text = factory.createText();
-        text.setValue(titleText);
-        run.getContent().add(text);
-        paragraph.getContent().add(run);
-
-        mainDocumentPart.getContent().add(paragraph);
+        XWPFRun pageRun = pageParagraph.createRun();
+        pageRun.setText(pageTitle);
+        pageRun.setBold(true);
+        pageRun.setFontSize(16);
+        pageRun.setColor("2c44ad"); 
+        pageRun.setFontFamily("Arial");
     }
 
-    private void addPageTitle(String titleText) {
-        P paragraph = factory.createP();
+    private void addSectionTitle(XWPFDocument document, String sectionTitle) {
+        XWPFParagraph sectionParagraph = document.createParagraph();
+        sectionParagraph.setSpacingBefore(200);
+        sectionParagraph.setSpacingAfter(100);
 
-        R run = factory.createR();
-        RPr rPr = factory.createRPr();
-        BooleanDefaultTrue bold = factory.createBooleanDefaultTrue();
-        rPr.setB(bold);
-
-        RFonts fonts = factory.createRFonts();
-        fonts.setAscii("Arial");
-        fonts.setHAnsi("Arial");
-        rPr.setRFonts(fonts);
-
-        Color color = factory.createColor();
-        color.setVal("0066CC");
-        rPr.setColor(color);
-
-        // Taille de police moyenne
-        HpsMeasure fontSize = factory.createHpsMeasure();
-        fontSize.setVal(BigInteger.valueOf(28)); // 14pt
-        rPr.setSz(fontSize);
-        rPr.setSzCs(fontSize);
-
-        run.setRPr(rPr);
-
-        Text text = factory.createText();
-        text.setValue(titleText);
-        run.getContent().add(text);
-        paragraph.getContent().add(run);
-
-        mainDocumentPart.getContent().add(paragraph);
+        XWPFRun sectionRun = sectionParagraph.createRun();
+        sectionRun.setText(sectionTitle);
+        sectionRun.setBold(true);
+        sectionRun.setFontSize(13);
+        sectionRun.setColor("0066CC"); 
+        sectionRun.setFontFamily("Arial");
     }
 
-    private void addSectionTitle(String titleText) {
-        P paragraph = factory.createP();
+    private void addCitationEntry(XWPFDocument document, String citation, String note) {
+        //citation
+        if (citation != null && !citation.trim().isEmpty()) {
+            XWPFParagraph citationParagraph = document.createParagraph();
+            citationParagraph.setIndentationLeft(360); 
+            citationParagraph.setSpacingAfter(50);
 
-        R run = factory.createR();
-        RPr rPr = factory.createRPr();
-        BooleanDefaultTrue bold = factory.createBooleanDefaultTrue();
-        rPr.setB(bold);
-
-        RFonts fonts = factory.createRFonts();
-        fonts.setAscii("Arial");
-        fonts.setHAnsi("Arial");
-        rPr.setRFonts(fonts);
-
-        Color color = factory.createColor();
-        color.setVal("334e69");
-        rPr.setColor(color);
-
-        HpsMeasure fontSize = factory.createHpsMeasure();
-        fontSize.setVal(BigInteger.valueOf(24)); // 12pt
-        rPr.setSz(fontSize);
-        rPr.setSzCs(fontSize);
-
-        run.setRPr(rPr);
-
-        Text text = factory.createText();
-        text.setValue(titleText);
-        run.getContent().add(text);
-        paragraph.getContent().add(run);
-
-        mainDocumentPart.getContent().add(paragraph);
-    }
-
-    private void addCitationEntry(String citation, String footnote) {
-        // citation
-        P citationParagraph = factory.createP();
-        R citationRun = factory.createR();
-
-        RPr citationRPr = factory.createRPr();
-        RFonts fonts = factory.createRFonts();
-        fonts.setAscii("Arial");
-        fonts.setHAnsi("Arial");
-        citationRPr.setRFonts(fonts);
-        citationRun.setRPr(citationRPr);
-
-        Text citationText = factory.createText();
-        citationText.setValue(citation);
-        citationRun.getContent().add(citationText);
-        citationParagraph.getContent().add(citationRun);
-        mainDocumentPart.getContent().add(citationParagraph);
+            XWPFRun citationRun = citationParagraph.createRun();
+            citationRun.setText("• " + citation);
+            citationRun.setFontFamily("Arial");
+            citationRun.setFontSize(11);
+        }
 
         // note
-        P footnoteParagraph = factory.createP();
-        R footnoteRun = factory.createR();
-        RPr footnoteRPr = factory.createRPr();
-        BooleanDefaultTrue italic = factory.createBooleanDefaultTrue();
-        footnoteRPr.setI(italic);
+        if (note != null && !note.trim().isEmpty()) {
+            XWPFParagraph noteParagraph = document.createParagraph();
+            noteParagraph.setIndentationLeft(720); // Plus d'indentation pour la note
+            noteParagraph.setSpacingAfter(100);
 
-        RFonts footnoteFonts = factory.createRFonts();
-        footnoteFonts.setAscii("Arial");
-        footnoteFonts.setHAnsi("Arial");
-        footnoteRPr.setRFonts(footnoteFonts);
-
-        footnoteRun.setRPr(footnoteRPr);
-
-        Text footnoteText = factory.createText();
-        footnoteText.setValue(footnote);
-        footnoteRun.getContent().add(footnoteText);
-        footnoteParagraph.getContent().add(footnoteRun);
-        mainDocumentPart.getContent().add(footnoteParagraph);
-
-        addLineBreak();
+            XWPFRun noteRun = noteParagraph.createRun();
+            noteRun.setText("→ " + note);
+            noteRun.setFontFamily("Arial");
+            noteRun.setFontSize(10);
+            noteRun.setItalic(true);
+            noteRun.setColor("666666"); 
+        }
     }
 
-    private void addLineBreak() {
-        P paragraph = factory.createP();
-        mainDocumentPart.getContent().add(paragraph);
+    private void addLineBreak(XWPFDocument document) {
+        document.createParagraph();
     }
 
-    private void saveDocument(String outputPath) throws IOException, Docx4JException {
-
-        if (!outputPath.toLowerCase().endsWith(".docx")) {
-            outputPath += ".docx";
+    private void cleanupTempFile(Path tempFile) {
+        if (tempFile != null) {
+            try {
+                Files.deleteIfExists(tempFile);
+                logger.info("Temporary file deleted after failure: {}", tempFile);
+            } catch (IOException ex) {
+                logger.warn("Failed to delete temporary file: {}", tempFile, ex);
+            }
         }
+    }
 
-        try (FileOutputStream fos = new FileOutputStream(outputPath)) {
-            wordPackage.save(fos);
+    private String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.trim().isEmpty()) {
+            return "citations_document";
         }
+        return fileName.replaceAll("[^a-zA-Z0-9._-]", "_").substring(0, Math.min(fileName.length(), 50));
     }
 
     private String generatePathName(String title) {
-        return title.replaceAll("\\s", "_") + ".docx";
+        String safeName = title != null ? title.replaceAll("\\s", "_") : "citations_document";
+        return safeName + ".docx";
     }
+
 }

@@ -9,8 +9,10 @@ import com.noesis.pdf_extractor_tools.middleware.ClassicRateLimiter;
 import com.noesis.pdf_extractor_tools.middleware.JwtAuthInterceptor;
 import com.noesis.pdf_extractor_tools.middleware.StrictRateLimiter;
 
+
+
 @Configuration
-public class WebConfig implements WebMvcConfigurer{
+public class WebConfig implements WebMvcConfigurer {
 
     private final ClassicRateLimiter classicRateLimiter;
 
@@ -18,17 +20,20 @@ public class WebConfig implements WebMvcConfigurer{
 
     private final JwtAuthInterceptor jwtAuthInterceptor;
 
-    public WebConfig(ClassicRateLimiter classicRateLimiter, StrictRateLimiter strictRateLimiter, JwtAuthInterceptor jwtAuthInterceptor){
+    public WebConfig(ClassicRateLimiter classicRateLimiter, StrictRateLimiter strictRateLimiter,
+            JwtAuthInterceptor jwtAuthInterceptor) {
         this.classicRateLimiter = classicRateLimiter;
         this.strictRateLimiter = strictRateLimiter;
         this.jwtAuthInterceptor = jwtAuthInterceptor;
     }
 
     @Override
-    public void addInterceptors(@NonNull InterceptorRegistry registry){
-        registry.addInterceptor(classicRateLimiter).addPathPatterns("/**").excludePathPatterns("/extract/**", "/auth/**");
+    public void addInterceptors(@NonNull InterceptorRegistry registry) {
+        registry.addInterceptor(classicRateLimiter).addPathPatterns("/**").excludePathPatterns("/extract/**",
+                "/auth/**");
         registry.addInterceptor(strictRateLimiter).addPathPatterns("/auth/**");
-        registry.addInterceptor(jwtAuthInterceptor).addPathPatterns("/extract/**", "/user/**").excludePathPatterns("/auth/**");
+        registry.addInterceptor(jwtAuthInterceptor).addPathPatterns("/extract/**", "/user/**")
+                .excludePathPatterns("/auth/**");
     }
-    
+
 }
