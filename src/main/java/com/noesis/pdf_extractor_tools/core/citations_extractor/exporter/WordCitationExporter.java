@@ -224,7 +224,6 @@ public class WordCitationExporter implements ICitationExporter {
         if (fileName == null || fileName.trim().isEmpty()) {
             return "citations_document";
         }
-        // Remplacer les caractères problématiques
         return fileName.replaceAll("[^a-zA-Z0-9._-]", "_").substring(0, Math.min(fileName.length(), 50));
     }
 
