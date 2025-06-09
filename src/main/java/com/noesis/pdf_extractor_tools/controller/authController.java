@@ -36,7 +36,7 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
-    @GetMapping("/auth/ping")
+    @GetMapping("/ping")
     public ResponseEntity<String> ping() {
         return ResponseEntity.ok("pong");
     }
