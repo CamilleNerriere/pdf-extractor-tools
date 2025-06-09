@@ -1,13 +1,13 @@
 # PDF Extractor Tools - Noësis project
 
-This app is part of a larger project called *Noësis* (information soon to come). It aims (among other goals) to provide effective tools for researchers and students. 
+This app is part of a larger project called *Noësis* (more information coming soon). It aims (among other goals) to provide effective tools for researchers and students. 
 
 ## Actual key functionalities 
 * **Academic citations extraction**
 
-From a PDF, you can export (PDF, Word or txt handled) all the citations in the original document (traditional citations between quotation marks, harvard citations, and block citations). 
+From a PDF, you can export (PDF, Word or txt handled) all the citations in the original document (traditional citations between quotation marks, harvard citations, and block citations). The process relies on a precise analysis of characters — including Unicode symbols, note numbers, and their coordinates — to reconstruct citations and their associated footnotes.
 
-You can find it as an individual tool [here](https://github.com/CamilleNerriere/citation-extractor) - with also more informations 
+You can find the citation-extractor as an individual tool [here](https://github.com/CamilleNerriere/citation-extractor) - with also more informations. 
 
 * **Annotations extraction**
 
@@ -52,7 +52,7 @@ As it is still a demo, registration is disabled. A basic demo user is provided t
 
 | Feature                | Path                      | Description                          |
 |------------------------|---------------------------|--------------------------------------|
-| **Register**           | `GET /auth/register`      | Returns new user non sensitive infos  - disactivated in demo mode                       |
+| **Register**           | `GET /auth/register`      | Returns new user non sensitive info  - disabled in demo mode                       |
 | **Login**              | `POST /auth/login`        | Returns JWT                          |
 | **User Info**          | `GET /user/me`            | Requires JWT                         |
 | **Update User**        | `PUT /user/update`        | Auth required                        |

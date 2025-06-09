@@ -45,5 +45,3 @@ Thumbs.db
 /logback*
 
 .env.properties
-
-data.sql
