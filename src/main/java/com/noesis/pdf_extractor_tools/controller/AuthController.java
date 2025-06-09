@@ -30,7 +30,7 @@ public class AuthController {
     @Autowired
     AuthService authService;
 
-    private final boolean IS_DEMO = true;
+    private final boolean IS_DEMO = false;
 
     AuthController(JwtService jwtService) {
         this.jwtService = jwtService;
