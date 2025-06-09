@@ -5,7 +5,6 @@ import java.util.Arrays;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,14 +22,10 @@ import com.noesis.pdf_extractor_tools.security.JwtAuthentificationFilter;
 @Configuration
 public class SecurityConfig {
 
-    private final JwtAuthentificationFilter jwtAuthentificationFilter;
 
     @Value("${allowed.origins}")
     private String allowedOrigins;
 
-    SecurityConfig(JwtAuthentificationFilter jwtAuthentificationFilter) {
-        this.jwtAuthentificationFilter = jwtAuthentificationFilter;
-    }
 
     @Bean
     public CorsFilter corsFilter() {
@@ -48,7 +43,6 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile("!test")
     public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthentificationFilter jwtAuthentificationFilter)
             throws Exception {
         http
