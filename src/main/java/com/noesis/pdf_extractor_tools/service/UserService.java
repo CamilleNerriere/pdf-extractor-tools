@@ -84,9 +84,6 @@ public class UserService {
             throw new InvalidCredentialsException();
         }
 
-        System.out.println("DEBUG - Authentification réussie pour " + user.getEmail());
-        System.out.println("DEBUG - User trouvé : " + user);
-
         return new org.springframework.security.core.userdetails.User(
                 user.getEmail(),
                 user.getPassword(),
